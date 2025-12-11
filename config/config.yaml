@@ -1,0 +1,32 @@
+
+# 内置工具集配置（Built-in Toolsets）
+toolsets:
+  prometheus/metrics:
+    enabled: true
+    config:
+      # 使用 NodePort 访问 Prometheus（API 服务器在集群外）
+      prometheus_url: "http://10.2.0.48:30090"
+  docker/core:
+    enabled: true
+
+  kubernetes/logs:
+    enabled: false # HolmesGPT's default logging mechanism MUST be disabled
+
+# 第三方 MCP 服务器配置（Remote MCP Servers）
+# mcp_servers:
+  # test_tool_server:
+  #   description: "测试工具集临时输出 - 只有当用户需要测试的时候才运行"
+  #   config:
+  #     # url: "http://localhost:8081/sse"
+  #     url: "http://10.2.0.48:31112/sse"
+  #     mode: "sse"
+  #   llm_instructions: "只有当用户需要测试临时输出的时候才运行这个工具。这是一个简单的测试工具，用于验证 MCP 集成是否正常工作。"
+  #   enabled: true
+  
+  # elasticsearch:
+  #   description: "Elasticsearch MCP 工具集 - 用于查询索引、搜索日志数据"
+  #   config:
+  #     # url: "http://10.2.0.48:8082/sse"
+  #     url: "http://10.2.0.48:30785/sse"
+  #     mode: "sse"
+  #   enabled: true

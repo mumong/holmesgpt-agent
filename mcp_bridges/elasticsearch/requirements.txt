@@ -1,0 +1,6 @@
+# Elasticsearch MCP 桥接服务器依赖
+mcp>=1.0.0
+uvicorn[standard]>=0.24.0
+starlette>=0.27.0
+langchain-mcp-adapters>=0.1.0
+

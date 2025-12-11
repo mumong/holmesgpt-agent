@@ -1,0 +1,38 @@
+# ============================================================================
+# ConfigMap - 应用配置文件
+# ============================================================================
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aiops-config
+  namespace: aiops
+data:
+  config.yaml: |
+    # 内置工具集配置（Built-in Toolsets）
+    toolsets:
+      prometheus/metrics:
+        enabled: true
+        config:
+          prometheus_url: "http://observability-prometheus.xnet.svc:9090"
+      docker/core:
+        enabled: true
+      kubernetes/logs:
+        enabled: false
+    
+    # 第三方 MCP 服务器配置（Remote MCP Servers）
+    mcp_servers:
+      test_tool_server:
+        description: "测试工具集临时输出 - 只有当用户需要测试的时候才运行"
+        config:
+          url: "http://mcp-server-manager.mcp:8091/sse"
+          mode: "sse"
+        llm_instructions: "只有当用户需要测试临时输出的时候才运行这个工具。"
+        enabled: true
+      
+      elasticsearch:
+        description: "Elasticsearch MCP 工具集 - 用于查询索引、搜索日志数据"
+        config:
+          url: "http://mcp-server-manager.mcp:8088/sse"
+          mode: "sse"
+        enabled: true
