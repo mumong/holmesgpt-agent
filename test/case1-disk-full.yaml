@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: disk-stress-demo
+  namespace: chaos-test
+  labels:
+    app: disk-stress
+spec:
+  containers:
+  - name: disk-filler
+    image: alpine:latest
+    imagePullPolicy: IfNotPresent
+    # 限制这个容器只能用 100Mi 磁盘，满了就会报错
+    resources:
+      limits:
+        ephemeral-storage: "100Mi"
+    # 尝试写入一个 200MB 的文件，绝对会爆
+    command: ["/bin/sh", "-c"]
+    args:
+    - |
+      echo "Starting disk fill..."
+      dd if=/dev/zero of=/tmp/large-file bs=1M count=200
+      echo "If you see this, the test failed (disk didn't fill)."
+      sleep 3600

@@ -1,17 +1,22 @@
 {
   "catalog": [
     {
-      "id": "pod-restart-troubleshooting.md",
-      "update_date": "2025-12-04",
-      "description": "排查和解决 Kubernetes Pod 频繁重启问题的完整指南。包括 CrashLoopBackOff、OOMKilled、健康检查失败等常见原因的诊断步骤、根本原因分析和解决方案。适用于 Pod 重启、容器崩溃、应用启动失败等场景。",
-      "link": "pod-restart-troubleshooting.md"
+      "id": "disk-full",
+      "update_date": "2025-12-12",
+      "description": "Linux 磁盘空间耗尽的原理分析、常见场景、诊断方法和修复策略",
+      "link": "disk-full.md"
     },
     {
-      "id": "network-connectivity-issues.md",
-      "update_date": "2025-12-04",
-      "description": "诊断 Kubernetes 集群网络连通性问题。包括 Service 无法访问、DNS 解析失败、NetworkPolicy 配置错误、Pod 间通信问题等网络相关故障的诊断和解决方案。",
-      "link": "network-connectivity-issues.md"
+      "id": "crashloop-backoff",
+      "update_date": "2025-12-12",
+      "description": "Kubernetes 容器崩溃循环的原理分析、Exit Code 解读、常见场景和修复策略",
+      "link": "crashloop-backoff.md"
+    },
+    {
+      "id": "port-conflict",
+      "update_date": "2025-12-12",
+      "description": "TCP 端口冲突的原理分析、常见场景、诊断方法和修复策略",
+      "link": "port-conflict.md"
     }
   ]
 }
-

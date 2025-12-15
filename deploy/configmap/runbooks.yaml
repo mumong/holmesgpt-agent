@@ -1,5 +1,6 @@
-# Runbook 文件 ConfigMap
-# 存放所有 runbook md 文件，kubectl edit 即可修改
+# Runbook 知识库 ConfigMap
+# 定位：运维领域知识库 + 修复手册
+# 核心 3 Case：磁盘满、容器崩溃、端口冲突
 
 apiVersion: v1
 kind: ConfigMap
@@ -7,95 +8,442 @@ metadata:
   name: aiops-runbooks
   namespace: aiops
 data:
-  # ========== Runbook 索引 ==========
   catalog.json: |
     {
       "catalog": [
         {
-          "id": "exs-restart-troubleshooting.md",
-          "update_date": "2025-12-04",
-          "description": "排查和解决 Kubernetes Pod 频繁重启问题的完整指南。包括 CrashLoopBackOff、OOMKilled、健康检查失败等常见原因的诊断步骤、根本原因分析和解决方案。",
-          "link": "pod-restart-troubleshooting.md"
+          "id": "disk-full",
+          "update_date": "2025-12-12",
+          "description": "Linux 磁盘空间耗尽的原理分析、常见场景、诊断方法和修复策略",
+          "link": "disk-full.md"
         },
         {
-          "id": "network-connectivity-issues.md",
-          "update_date": "2025-12-04",
-          "description": "诊断 Kubernetes 集群网络连通性问题。包括 Service 无法访问、DNS 解析失败、NetworkPolicy 配置错误、Pod 间通信问题等。",
-          "link": "network-connectivity-issues.md"
+          "id": "crashloop-backoff",
+          "update_date": "2025-12-12",
+          "description": "Kubernetes 容器崩溃循环的原理分析、Exit Code 解读、常见场景和修复策略",
+          "link": "crashloop-backoff.md"
+        },
+        {
+          "id": "port-conflict",
+          "update_date": "2025-12-12",
+          "description": "TCP 端口冲突的原理分析、常见场景、诊断方法和修复策略",
+          "link": "port-conflict.md"
         }
       ]
     }
 
-  # ========== Runbook 文件 ==========
-  exs-restart-troubleshooting.md: |
-    # Pod 重启问题排查指南
+  # ==========================================================================
+  # 磁盘空间耗尽故障手册
+  # ==========================================================================
+  disk-full.md: |
+    # 磁盘空间耗尽故障手册
 
-    ## Goal
-    诊断和解决 Kubernetes Pod 频繁重启的问题。本指南涵盖 CrashLoopBackOff、OOMKilled、健康检查失败等常见原因的诊断步骤和解决方案。AI 必须按照本指南的步骤顺序执行诊断，确保全面、系统地排查问题。
+    ## 故障特征
+    **错误关键词**: `No space left on device`、`ENOSPC`、`disk full`
+    
+    **典型表现**:
+    - 日志无法写入，服务报错
+    - Docker 镜像拉取失败
+    - 数据库写入失败
+    - Pod 启动失败（镜像层无法解压）
 
-    ## Workflow for Pod Restart Diagnosis
+    ## 问题原理
+    Linux 文件系统空间耗尽时，所有写操作返回 ENOSPC 错误。
+    常被忽视的是 **inode 耗尽**（大量小文件）也会导致相同错误。
 
-    ### 立即执行（止血）
-    1. **如果是 OOMKilled**: 临时增加 `resources.limits.memory`
-    2. **如果是依赖服务问题**: 检查并修复依赖服务
-    3. **如果是健康检查失败**: 临时禁用或放宽 `livenessProbe`
-    4. **如果是配置错误**: 修复 ConfigMap 或 Secret 中的配置
+    ## 常见场景与根因
 
-    ### 长期优化（根治）
-    1. 配置 Pod 重启告警
-    2. 监控资源使用趋势
-    3. 实现优雅关闭（graceful shutdown）
-    4. 添加重试机制和断路器
+    ### 场景 1: 日志膨胀（最常见，占 60%）
+    **特征**: `/var/log` 目录占用异常
+    **根因**: 
+    - 应用日志未配置轮转（logrotate）
+    - 日志级别设置为 DEBUG 产生大量日志
+    - 错误循环导致日志爆炸式增长
+    **修复**: 配置 logrotate，截断大日志文件
 
-  network-connectivity-issues.md: |
-    # Kubernetes 网络连通性问题排查指南
+    ### 场景 2: Docker/容器数据堆积（占 25%）
+    **特征**: `/var/lib/docker` 或 `/var/lib/containerd` 占用异常
+    **根因**:
+    - 未清理的旧镜像层
+    - 已停止容器的数据未清理
+    - 容器内日志未限制大小
+    **修复**: `docker system prune -af` 清理未使用资源
 
-    ## Goal
-    诊断和解决 Kubernetes 集群中的网络连通性问题。包括 Service 无法访问、DNS 解析失败、NetworkPolicy 配置错误、Pod 间通信问题等网络相关故障的诊断步骤和解决方案。
+    ### 场景 3: 应用数据增长（占 10%）
+    **特征**: `/data`、`/home` 或应用自定义目录占用大
+    **根因**: 业务数据自然增长，未及时归档
+    **修复**: 归档历史数据，扩容磁盘
 
-    ## Workflow for Network Connectivity Diagnosis
+    ### 场景 4: 临时文件未清理（占 5%）
+    **特征**: `/tmp` 目录占用异常
+    **根因**: 应用产生临时文件未清理
+    **修复**: 清理过期临时文件
 
-    1. **检查 Service 配置**:
-       - 使用 `kubectl_describe` 查看 Service 的详细配置
-       - 检查 `Selector` 是否匹配到 Pod
-       - 验证 `Port` 配置是否正确
-       - 使用 `kubectl_get_by_name` 查看 Service 的 Endpoints
+    ### 场景 5: K8s ephemeral-storage 超限（容器场景）
+    **错误关键词**: `ephemeral local storage usage exceeds`、`Evicted`、`Pod was evicted`
+    **特征**: 
+    - Pod 状态为 `Evicted`
+    - Events 显示 `The node was low on resource: ephemeral-storage`
+    - 容器内 dd/写入操作报错 `No space left on device`
+    **根因**:
+    - 容器写入数据超过 `limits.ephemeral-storage` 限制
+    - 应用在容器内生成大文件（日志、临时文件、缓存）
+    - 未配置 ephemeral-storage 限制，被节点驱逐
+    **修复**: 
+    - 增加 ephemeral-storage 限制
+    - 清理容器内大文件
+    - 使用 PVC 存储大文件
 
-    2. **检查 Pod 网络配置**:
-       - 使用 `kubectl_describe` 查看 Pod 的网络配置
-       - 检查 Pod IP 是否正常分配
-       - 验证 Pod 是否在正确的节点上运行
+    ## 诊断方法论
 
-    3. **测试 DNS 解析**:
-       - 在 Pod 内测试 DNS 解析（需要 exec 到 Pod）
-       - 检查 `/etc/resolv.conf` 配置
-       - 测试内部服务名解析（如 `service-name.namespace.svc.cluster.local`）
+    ### 通用诊断流程
+    1. `df -h` 确认哪个挂载点满了
+    2. `du -sh /*` 定位一级目录
+    3. 根据大目录特征匹配上述场景
+    4. 针对性处理
 
-    4. **检查 NetworkPolicy**:
-       - 使用 `kubectl_get_by_kind_in_namespace` 查看 NetworkPolicy
-       - 验证 NetworkPolicy 规则是否允许必要的流量
-       - 检查 ingress 和 egress 规则
+    ### 快速定位命令
+    ```bash
+    # 物理机磁盘使用率
+    df -h
+    
+    # 一级目录大小排序
+    du -sh /* 2>/dev/null | sort -hr | head -5
+    
+    # Docker 空间使用
+    docker system df
+    ```
 
-    5. **检查节点网络**:
-       - 检查节点之间的网络连通性
-       - 验证 CNI 插件是否正常运行
+    ### K8s ephemeral-storage 诊断
+    ```bash
+    # 查找被驱逐的 Pod
+    kubectl get pod -A | grep Evicted
+    
+    # 查看 Pod 事件（找 ephemeral-storage 相关）
+    kubectl describe pod <pod-name> -n <namespace>
+    
+    # 查看 Pod 的 ephemeral-storage 配置
+    kubectl get pod <pod-name> -n <namespace> -o jsonpath='{.spec.containers[*].resources}'
+    ```
 
-    ## Synthesize Findings
+    ## 🔧 修复命令（直接执行）
+    **禁止删除重要文件！只能清理无关紧要的数据。**
 
-    综合判断网络问题的根本原因：
-    - Service 无 Endpoints: Service 的 Selector 不匹配任何 Pod
-    - DNS 解析失败: CoreDNS 配置问题或网络策略阻止
-    - NetworkPolicy 阻止: 策略规则过于严格
-    - CNI 问题: 网络插件故障
+    ### 物理机磁盘清理
+    ```bash
+    # 清理 Docker 未使用资源（安全）
+    docker system prune -af
+    
+    # 截断大日志文件（安全，不删除）
+    truncate -s 0 /path/to/large.log
+    ```
 
-    ## Recommended Remediation Steps
+    ### K8s ephemeral-storage 超限修复
+    ```bash
+    # 方案1：增加 ephemeral-storage 限制（推荐）
+    kubectl patch deployment <deployment-name> -n <namespace> -p '{"spec":{"template":{"spec":{"containers":[{"name":"<container-name>","resources":{"limits":{"ephemeral-storage":"500Mi"}}}]}}}}'
+    
+    # 方案2：删除被驱逐的 Pod（让其重建）
+    kubectl delete pod <pod-name> -n <namespace>
+    
+    # 方案3：清理所有 Evicted Pod
+    kubectl get pod -A | grep Evicted | awk '{print $2 " -n " $1}' | xargs -L1 kubectl delete pod
+    ```
 
-    ### 立即执行
-    1. 修复 Service Selector 匹配问题
-    2. 调整 NetworkPolicy 规则
-    3. 重启 CoreDNS Pod
+    ## 🔍 修复后验证
+    ```bash
+    # 验证磁盘空间
+    df -h
+    
+    # 验证 Pod 状态
+    kubectl get pod -n <namespace>
+    ```
 
-    ### 长期优化
-    1. 建立网络监控
-    2. 优化 NetworkPolicy 策略
+    ### 不建议操作
+    - 删除系统日志（/var/log/messages、syslog）
+    - 删除未知大文件
 
+    ## 预防措施
+    - 配置日志轮转（logrotate）
+    - 设置磁盘使用率监控告警（阈值 80%）
+    - 定期执行 Docker 清理任务
+    - 容器日志配置大小限制
+
+  # ==========================================================================
+  # CrashLoopBackOff 故障手册
+  # ==========================================================================
+  crashloop-backoff.md: |
+    # CrashLoopBackOff 故障手册
+
+    ## 故障特征
+    **状态关键词**: `CrashLoopBackOff`、`Error`、`Restart Count > 0`
+    
+    **典型表现**:
+    - Pod 状态反复在 Running 和 CrashLoopBackOff 之间切换
+    - Restart Count 持续增加
+    - 服务无法正常提供
+
+    ## 问题原理
+    Kubernetes 检测到容器退出后会尝试重启，但如果容器持续退出，
+    kubelet 会逐渐增加重启间隔（指数退避），最终进入 CrashLoopBackOff 状态。
+
+    **退避时间**: 10s → 20s → 40s → 80s → ... → 最大 5 分钟
+
+    ## Exit Code 知识库
+
+    | Exit Code | 信号 | 含义 | 典型场景 |
+    |-----------|------|------|---------|
+    | 0 | - | 正常退出 | 一次性任务完成、启动命令错误 |
+    | 1 | - | 应用错误 | 配置错误、依赖缺失、代码异常 |
+    | 126 | - | 无执行权限 | 脚本没有执行权限 |
+    | 127 | - | 命令不存在 | command 配置错误、镜像缺少依赖 |
+    | 137 | SIGKILL(9) | OOMKilled | 内存超限被系统杀死 |
+    | 139 | SIGSEGV(11) | 段错误 | 应用访问非法内存 |
+    | 143 | SIGTERM(15) | 优雅终止 | 被 K8s 主动终止、健康检查失败 |
+
+    ## 常见场景与根因
+
+    ### 场景 1: OOMKilled（Exit Code 137）
+    **特征**: Last State Reason 为 `OOMKilled`
+    **根因**: 
+    - memory limit 设置过低
+    - 应用内存泄漏
+    - JVM/Node.js 堆内存配置不当
+    **修复**: 增加 memory limit，或优化应用内存使用
+
+    ### 场景 2: 应用配置错误（Exit Code 1）
+    **特征**: 日志中有明确的配置相关错误
+    **根因**:
+    - 环境变量缺失或错误
+    - ConfigMap/Secret 配置错误
+    - 数据库连接串错误
+    **修复**: 修正配置后重启 Pod
+
+    ### 场景 3: 依赖服务不可用（Exit Code 1）
+    **特征**: 日志中有 `connection refused`、`timeout` 等
+    **根因**: 
+    - 依赖的数据库、缓存、API 不可用
+    - DNS 解析失败
+    - 网络策略阻止访问
+    **修复**: 确保依赖服务可用，检查网络策略
+
+    ### 场景 4: 启动命令错误（Exit Code 0/127）
+    **特征**: Pod 启动后立即退出，几乎没有日志
+    **根因**:
+    - command/args 配置错误
+    - 入口点脚本有问题
+    **修复**: 检查并修正 command 配置
+
+    ### 场景 5: 健康检查过严（Exit Code 143）
+    **特征**: 应用日志正常，但被频繁重启
+    **根因**:
+    - livenessProbe 超时时间太短
+    - 健康检查端点响应慢
+    - initialDelaySeconds 不足
+    **修复**: 放宽健康检查配置
+
+    ## 诊断方法论
+
+    ### 通用诊断流程
+    1. `kubectl describe pod` 获取 Exit Code 和 Reason
+    2. `kubectl logs --previous` 获取崩溃前日志
+    3. 根据 Exit Code 和日志匹配上述场景
+    4. 针对性修复
+
+    ### 关键诊断命令
+    ```bash
+    # 获取 Pod 状态和 Exit Code
+    kubectl describe pod <name> -n <ns>
+    
+    # 获取上一次崩溃的日志
+    kubectl logs <name> -n <ns> --previous
+    ```
+
+    ## 🔧 修复命令（直接执行）
+    根据问题直接进行你认为可行的修改，直接执行命令帮我修复并且解决问题。
+    ### 通用修复：删除 Pod 让其重建
+    ```bash
+    kubectl delete pod <pod-name> -n <namespace>
+    ```
+
+    ### OOMKilled (Exit Code 137) 修复
+    ```bash
+    # 增加内存限制到 1Gi
+    kubectl patch deployment <deployment-name> -n <namespace> -p '{"spec":{"template":{"spec":{"containers":[{"name":"<container-name>","resources":{"limits":{"memory":"1Gi"}}}]}}}}'
+    ```
+
+    ### 启动命令错误 (Exit Code 1/127) 修复
+    ```bash
+    # 修复启动命令（示例：改为正常运行的命令）
+    kubectl patch deployment <deployment-name> -n <namespace> -p '{"spec":{"template":{"spec":{"containers":[{"name":"<container-name>","command":["/bin/sh","-c","sleep infinity"]}]}}}}'
+    ```
+
+    ### 配置错误修复
+    ```bash
+    # 重启 Deployment 使配置生效
+    kubectl rollout restart deployment <deployment-name> -n <namespace>
+    ```
+
+    ### 健康检查过严修复
+    ```bash
+    # 放宽 livenessProbe（增加超时和失败阈值）
+    kubectl patch deployment <deployment-name> -n <namespace> -p '{"spec":{"template":{"spec":{"containers":[{"name":"<container-name>","livenessProbe":{"initialDelaySeconds":60,"timeoutSeconds":10,"failureThreshold":5}}]}}}}'
+    ```
+
+    ### 删除有问题的 Deployment（最后手段）
+    ```bash
+    kubectl delete deployment <deployment-name> -n <namespace>
+    ```
+
+    ## 🔍 修复后验证
+    ```bash
+    # 检查 Pod 状态是否恢复正常
+    kubectl get pod -n <namespace> | grep <pod-name>
+    # 确认 RESTARTS 不再增加，STATUS 为 Running
+    ```
+
+    ## 预防措施
+    - 设置合理的资源 requests/limits（limits 为实际使用的 1.5-2 倍）
+    - 使用 startupProbe 处理启动慢的应用
+    - 配置 Pod 重启告警
+    - 应用实现优雅关闭
+
+  # ==========================================================================
+  # 端口冲突故障手册
+  # ==========================================================================
+  port-conflict.md: |
+    # 端口冲突故障手册
+
+    ## 故障特征
+    **错误关键词**: `Address already in use`、`EADDRINUSE`、`bind failed`
+    
+    **典型表现**:
+    - 服务启动失败
+    - 日志显示无法绑定端口
+    - 新版本部署失败
+
+    ## 问题原理
+    TCP/UDP 端口是**物理机级别**的系统资源，同一端口同一时间只能被一个进程监听。
+    当新进程尝试绑定已被占用的端口时，系统返回 EADDRINUSE 错误。
+
+    **特殊情况**: 
+    - TIME_WAIT 状态：连接关闭后端口可能保持 2MSL（通常 60s）
+    - SO_REUSEADDR：允许重用 TIME_WAIT 状态的端口
+
+    ## ⚠️ K8s 端口概念澄清（重要）
+    **端口冲突只发生在物理机层面，不要混淆以下概念：**
+
+    | 端口类型 | 说明 | 是否会冲突 |
+    |---------|------|-----------|
+    | **物理机端口** | 主机上进程实际监听的端口 | ✅ 会冲突 |
+    | hostPort | Pod 直接暴露到主机的端口 | ✅ 会冲突（同一节点） |
+    | NodePort | Service 暴露到节点的端口（30000-32767） | ✅ 会冲突（同一 NodePort 值） |
+    | containerPort | 容器内部监听的端口 | ❌ **不会冲突**（Pod 网络隔离） |
+    | Service port | Service 的虚拟端口 | ❌ **不会冲突**（ClusterIP 不同） |
+
+    **常见误判**：
+    - ❌ 多个 Deployment 的 containerPort 都是 8080 → 这**不是**冲突
+    - ❌ 多个 Service 的 targetPort 都是 8080 → 这**不是**冲突
+    - ✅ 两个进程都 bind 到主机的 0.0.0.0:8080 → 这**是**冲突
+    - ✅ 两个 Pod 都用 hostPort: 8080 调度到同一节点 → 这**是**冲突
+
+    ## 常见场景与根因
+
+    ### 场景 1: 旧版本进程未停止（最常见，占 70%）
+    **特征**: 同名进程已在运行
+    **根因**:
+    - 部署时未正确停止旧进程
+    - 热更新失败，旧进程残留
+    - systemd 服务停止不彻底
+    **修复**: 终止旧进程后重新启动
+
+    ### 场景 2: 多实例端口冲突（占 15%）
+    **特征**: 同一机器部署多个实例，端口相同
+    **根因**:
+    - 未为不同实例配置不同端口
+    - K8s hostPort 冲突
+    **修复**: 为不同实例分配不同端口
+
+    ### 场景 3: 不同服务端口冲突（占 10%）
+    **特征**: 占用端口的是其他服务
+    **根因**:
+    - 多个服务默认使用相同端口（如 8080）
+    - 新部署服务与现有服务端口重复
+    **修复**: 修改其中一个服务的端口
+
+    ### 场景 4: 僵尸进程占用（占 5%）
+    **特征**: 进程已不存在但端口仍被占用
+    **根因**: 
+    - 进程异常退出，内核未及时释放端口
+    - TIME_WAIT 状态
+    **修复**: 等待自动释放或重启网络服务
+
+    ## 诊断方法论
+
+    ### 通用诊断流程
+    1. 从错误日志提取端口号
+    2. `ss -tlnp | grep <port>` 或 `lsof -i:<port>` 定位占用进程
+    3. 判断占用进程类型（旧版本/其他服务/僵尸）
+    4. 针对性处理
+
+    ### 关键诊断命令
+    ```bash
+    # 查看端口占用
+    ss -tlnp | grep <port>
+    # 或
+    netstat -tlnp | grep <port>
+    
+    # 获取详细进程信息
+    lsof -i:<port>
+    
+    # 查看进程详情
+    ps -fp <PID>
+    ```
+
+    ## 🔧 修复命令（直接执行）
+    根据问题直接进行修复，不要只输出建议！
+
+    ### K8s hostPort 冲突修复
+    ```bash
+    # 方案1：删除有问题的 Deployment（快速止损）
+    kubectl delete deployment <deployment-name> -n <namespace>
+    
+    # 方案2：移除 hostPort 配置（推荐）
+    kubectl patch deployment <deployment-name> -n <namespace> --type='json' -p='[{"op":"remove","path":"/spec/template/spec/containers/0/ports/0/hostPort"}]'
+    
+    # 方案3：关闭 hostNetwork
+    kubectl patch deployment <deployment-name> -n <namespace> -p '{"spec":{"template":{"spec":{"hostNetwork":false}}}}'
+    
+    # 方案4：修改端口号（避免冲突）
+    kubectl patch deployment <deployment-name> -n <namespace> -p '{"spec":{"template":{"spec":{"containers":[{"name":"<container-name>","ports":[{"containerPort":8082,"hostPort":8082}]}]}}}}'
+    
+    # 方案5：调度到不同节点（移除 nodeName 限制，添加反亲和性）
+    kubectl patch deployment <deployment-name> -n <namespace> --type='json' -p='[{"op":"remove","path":"/spec/template/spec/nodeName"}]'
+    ```
+
+    ### 物理机端口冲突修复
+    ```bash
+    # 优雅终止占用进程
+    kill -15 <PID>
+    
+    # 如仍存在，强制终止
+    kill -9 <PID>
+    
+    # 修改应用配置使用其他端口（需要重启服务）
+    ```
+
+    ## 🔍 修复后验证
+    ```bash
+    # 检查 Pod 是否正常运行
+    kubectl get pod -n <namespace>
+    
+    # 检查端口是否释放
+    ss -tlnp | grep <port>
+    ```
+
+    ## 预防措施
+    - 部署脚本中先检查端口是否被占用
+    - 使用进程管理器（systemd）确保服务正确停止
+    - 配置 preStop hook 实现优雅关闭
+    - 不同环境使用不同端口段
+    - 避免使用常见默认端口（8080、3000 等）

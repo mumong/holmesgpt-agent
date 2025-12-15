@@ -1,0 +1,50 @@
+# 第一个 Pod：将成功占用端口
+apiVersion: v1
+kind: Pod
+metadata:
+  name: conflict-victim-1
+  namespace: chaos-test
+  labels:
+    app: port-conflict
+spec:
+  restartPolicy: Always
+  nodeName: node1          # <--- 锁死在 node1
+  hostNetwork: true        # <--- 占用宿主机网络
+  containers:
+  - name: nginx
+    image: nginx:alpine
+    imagePullPolicy: IfNotPresent
+    command: ["/bin/sh", "-c"]
+    args:
+      - |
+        echo "server { listen 8081; location / { return 200 'OK'; } }" > /etc/nginx/conf.d/default.conf
+        nginx -g "daemon off;"
+    ports:
+    - containerPort: 8081
+
+---
+
+# 第二个 Pod：注定失败
+apiVersion: v1
+kind: Pod
+metadata:
+  name: conflict-victim-2
+  namespace: chaos-test
+  labels:
+    app: port-conflict
+spec:
+  restartPolicy: Always
+  nodeName: node1          # <--- 锁死在 node1 (必须与上面相同)
+  hostNetwork: true        # <--- 占用宿主机网络
+  containers:
+  - name: nginx
+    image: nginx:alpine
+    imagePullPolicy: IfNotPresent
+    command: ["/bin/sh", "-c"]
+    args:
+      - |
+        echo "server { listen 8081; location / { return 200 'OK'; } }" > /etc/nginx/conf.d/default.conf
+        nginx -g "daemon off;"
+    ports:
+    - containerPort: 8081
+

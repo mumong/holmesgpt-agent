@@ -1,0 +1,166 @@
+# ============================================================================
+# AIOps Copilot RBAC 配置
+# ============================================================================
+# 提供集群级别的只读权限，用于诊断和监控
+# ============================================================================
+
+# ServiceAccount
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: aiops-copilot
+  namespace: aiops
+  labels:
+    app: aiops-copilot
+
+---
+# ClusterRole - 集群级别的诊断权限
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: aiops-copilot-cluster-role
+  labels:
+    app: aiops-copilot
+rules:
+  # ==================== 核心资源 (只读) ====================
+  # Pods - 查看、日志、exec（诊断用）
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "pods/status"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create"]  # 需要 create 权限来执行 kubectl exec
+  
+  # 其他核心资源 - 只读
+  - apiGroups: [""]
+    resources:
+      - nodes
+      - nodes/status
+      - services
+      - endpoints
+      - persistentvolumeclaims
+      - persistentvolumes
+      - configmaps
+      - secrets
+      - namespaces
+      - events
+      - replicationcontrollers
+      - resourcequotas
+      - limitranges
+      - serviceaccounts
+    verbs: ["get", "list", "watch"]
+
+  # ==================== Apps 资源 ====================
+  - apiGroups: ["apps"]
+    resources:
+      - deployments
+      - deployments/status
+      - daemonsets
+      - daemonsets/status
+      - replicasets
+      - replicasets/status
+      - statefulsets
+      - statefulsets/status
+    verbs: ["get", "list", "watch"]
+
+  # ==================== Batch 资源 ====================
+  - apiGroups: ["batch"]
+    resources:
+      - jobs
+      - jobs/status
+      - cronjobs
+      - cronjobs/status
+    verbs: ["get", "list", "watch"]
+
+  # ==================== Networking 资源 ====================
+  - apiGroups: ["networking.k8s.io"]
+    resources:
+      - ingresses
+      - ingresses/status
+      - networkpolicies
+    verbs: ["get", "list", "watch"]
+
+  # ==================== Storage 资源 ====================
+  - apiGroups: ["storage.k8s.io"]
+    resources:
+      - storageclasses
+      - volumeattachments
+    verbs: ["get", "list", "watch"]
+
+  # ==================== Autoscaling 资源 ====================
+  - apiGroups: ["autoscaling"]
+    resources:
+      - horizontalpodautoscalers
+      - horizontalpodautoscalers/status
+    verbs: ["get", "list", "watch"]
+
+  # ==================== Policy 资源 ====================
+  - apiGroups: ["policy"]
+    resources:
+      - poddisruptionbudgets
+      - poddisruptionbudgets/status
+    verbs: ["get", "list", "watch"]
+
+  # ==================== RBAC 资源 (查看权限配置) ====================
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources:
+      - roles
+      - rolebindings
+      - clusterroles
+      - clusterrolebindings
+    verbs: ["get", "list", "watch"]
+
+  # ==================== Metrics 资源 ====================
+  - apiGroups: ["metrics.k8s.io"]
+    resources:
+      - nodes
+      - pods
+    verbs: ["get", "list"]
+
+  # ==================== 自定义资源 (CRDs) ====================
+  - apiGroups: ["apiextensions.k8s.io"]
+    resources:
+      - customresourcedefinitions
+    verbs: ["get", "list", "watch"]
+
+  # ==================== 修复操作权限 ====================
+  # Deployment/DaemonSet/StatefulSet 修复
+  - apiGroups: ["apps"]
+    resources:
+      - deployments
+      - daemonsets
+      - statefulsets
+    verbs: ["patch", "delete"]  # patch 用于修改配置，delete 用于删除有问题的资源
+  
+  # Pod 删除（用于强制重启）
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["delete"]
+
+  # ConfigMap/Secret 更新（用于配置修复）
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["patch", "update"]
+  
+  # ReplicaSet 删除（清理残留）
+  - apiGroups: ["apps"]
+    resources: ["replicasets"]
+    verbs: ["delete"]
+
+---
+# ClusterRoleBinding - 绑定到 ServiceAccount
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: aiops-copilot-cluster-binding
+  labels:
+    app: aiops-copilot
+subjects:
+  - kind: ServiceAccount
+    name: aiops-copilot
+    namespace: aiops
+roleRef:
+  kind: ClusterRole
+  name: aiops-copilot-cluster-role
+  apiGroup: rbac.authorization.k8s.io
+

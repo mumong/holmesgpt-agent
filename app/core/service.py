@@ -477,8 +477,19 @@ class HolmesService:
             # 初始化（如果还未初始化）
             self.initialize(api_key=api_key, model=model, max_steps=max_steps)
             
-            # 确定使用的系统提示词
-            final_system_prompt = system_prompt or SYSTEM_PROMPT
+            # DSPy 智能增强：根据问题类型优化 prompt
+            try:
+                from app.core.dspy_enhancer import prepare_for_holmes
+                question, final_system_prompt = prepare_for_holmes(
+                    question, 
+                    system_prompt or SYSTEM_PROMPT,
+                    enhance_mode="both"
+                )
+                logger.info(f"✨ DSPy 增强已启用")
+            except Exception as e:
+                logger.warning(f"DSPy 增强失败，使用原始 prompt: {e}")
+                final_system_prompt = system_prompt or SYSTEM_PROMPT
+            
             logger.info(f"执行查询: {question[:100]}...")
             
             # 使用合并后的 runbook catalog

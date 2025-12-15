@@ -21,9 +21,10 @@ spec:
       labels:
         app: aiops-copilot
     spec:
+      serviceAccountName: aiops-copilot
       containers:
         - name: aiops-copilot
-          image: xnet.registry.io:8443/xnet-cloud/aiops-copilot:1.1.0
+          image: xnet.registry.io:8443/xnet-cloud/aiops-copilot:2.1.0
           ports:
             - containerPort: 8000
           env:
@@ -32,6 +33,11 @@ spec:
                 secretKeyRef:
                   name: aiops-secret
                   key: DEEPSEEK_API_KEY
+            - name: BASH_TOOL_UNSAFE_ALLOW_ALL
+              valueFrom:
+                secretKeyRef:
+                  name: aiops-secret
+                  key: BASH_TOOL_UNSAFE_ALLOW_ALL
             - name: CONFIG_FILE
               value: "/app/config-override/config.yaml"
           volumeMounts:

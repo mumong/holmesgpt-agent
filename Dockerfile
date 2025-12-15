@@ -10,15 +10,34 @@ FROM python:3.12-slim
 ARG VERSION=1.0.0
 ARG COMMIT_HASH=unknown
 ARG BUILD_TIME=unknown
+ARG KUBECTL_VERSION=v1.29.0
 
 # 设置工作目录
 WORKDIR /app
 
-# 安装系统依赖
+# 安装系统依赖和诊断工具
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    # 基础工具
     curl \
     ca-certificates \
+    # 网络诊断工具
+    net-tools \
+    iproute2 \
+    dnsutils \
+    iputils-ping \
+    netcat-openbsd \
+    # 系统诊断工具
+    procps \
+    lsof \
+    # 文本处理工具
+    jq \
     && rm -rf /var/lib/apt/lists/*
+
+# 安装 kubectl
+RUN curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" \
+    && chmod +x kubectl \
+    && mv kubectl /usr/local/bin/ \
+    && kubectl version --client
 
 # 复制依赖文件
 COPY requirements.txt .

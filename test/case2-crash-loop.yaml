@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crash-app-demo
+  namespace: chaos-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: crash-app
+  template:
+    metadata:
+      labels:
+        app: crash-app
+    spec:
+      containers:
+      - name: broken-container
+        image: alpine:latest
+        imagePullPolicy: IfNotPresent
+        # 模拟一个错误的启动逻辑
+        command: ["/bin/sh", "-c"]
+        args: ["echo 'App Starting...'; echo 'Critical Config Missing!'; exit 1"]
