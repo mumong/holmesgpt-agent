@@ -28,6 +28,12 @@ data:
           "update_date": "2025-12-12",
           "description": "TCP 端口冲突的原理分析、常见场景、诊断方法和修复策略",
           "link": "port-conflict.md"
+        },
+        {
+          "id": "helm-observability-install",
+          "update_date": "2025-12-16",
+          "description": "使用 Helm 从私有 GitLab Package Registry 安装 Observability 可观测性平台（包含 Prometheus、Grafana、DeepFlow、ELK 等组件），支持自定义配置和版本管理",
+          "link": "helm-observability-install.md"
         }
       ]
     }
@@ -447,3 +453,127 @@ data:
     - 配置 preStop hook 实现优雅关闭
     - 不同环境使用不同端口段
     - 避免使用常见默认端口（8080、3000 等）
+
+  # ==========================================================================
+  # Helm 安装 Observability 可观测性平台
+  # ==========================================================================
+  helm-observability-install.md: |
+    # Helm 安装 Observability 可观测性平台
+
+    ## ⛔ 重要约束（必须遵守）
+    **禁止使用 `run_bash_command` 执行任何 helm 命令！**
+    **必须使用 MCP 工具（helmcharts 工具集）执行所有 Helm 操作！**
+
+    原因：Helm CLI 不在 Agent 容器内，所有 Helm 操作已封装为 MCP 工具。
+
+    ## 🔧 可用的 MCP 工具列表
+
+    | MCP 工具名 | 功能 | 替代的 bash 命令 |
+    |-----------|------|-----------------|
+    | `helm_repo_add` | 添加 Helm repo | `helm repo add` |
+    | `helm_repo_list` | 列出已添加的 repo | `helm repo list` |
+    | `helm_repo_update` | 更新 repo 索引 | `helm repo update` |
+    | `helm_search_repo` | 搜索可用 chart | `helm search repo` |
+    | `helm_list_releases` | 列出已安装的 release | `helm list` |
+    | `helm_install` | 安装 chart | `helm install` |
+    | `helm_upgrade` | 升级 release | `helm upgrade` |
+    | `helm_uninstall` | 卸载 release | `helm uninstall` |
+    | `helm_status` | 查看 release 状态 | `helm status` |
+    | `helm_values` | 查看 release values | `helm get values` |
+    | `helm_history` | 查看 release 历史 | `helm history` |
+    | `helm_rollback` | 回滚 release | `helm rollback` |
+
+    ## 📋 标准操作流程
+
+    ### 步骤 1: 添加私有 Repo（使用 MCP 工具）
+    调用工具: `helm_repo_add`
+    参数:
+    - name: `observability`
+    - url: `http://192.168.1.63/api/v4/projects/65/packages/helm/stable`
+    - username: `wanghuhu`
+    - password: `glpat-n_ZsxoVt4HxN_ExHENy3`
+
+    ### 步骤 2: 更新 Repo 索引（使用 MCP 工具）
+    调用工具: `helm_repo_update`
+
+    ### 步骤 3: 搜索可用 Chart（使用 MCP 工具）
+    调用工具: `helm_search_repo`
+    参数:
+    - keyword: `observability`
+
+    ### 步骤 4: 检查是否已安装（使用 MCP 工具）
+    调用工具: `helm_list_releases`
+    参数:
+    - namespace: `xnet` 或 `all`
+
+    ### 步骤 5: 安装 Chart（使用 MCP 工具）
+    调用工具: `helm_install`
+    参数:
+    - release_name: `observability`
+    - chart: `observability/observability`
+    - namespace: `xnet`
+    - create_namespace: `true`
+    - wait: `true`
+
+    ### 步骤 6: 验证安装状态（使用 MCP 工具）
+    调用工具: `helm_status`
+    参数:
+    - release_name: `observability`
+    - namespace: `xnet`
+
+    ## 🔐 私有 Repo 配置信息
+
+    | 配置项 | 值 |
+    |-------|-----|
+    | Repo 名称 | `observability` |
+    | Repo URL | `http://192.168.1.63/api/v4/projects/65/packages/helm/stable` |
+    | 用户名 | `wanghuhu` |
+    | 密码/Token | `glpat-n_ZsxoVt4HxN_ExHENy3` |
+    | 目标 Namespace | `xnet` |
+
+    ## 📦 可用 Charts
+
+    | Chart 名称 | 说明 |
+    |-----------|------|
+    | `observability/observability` | 完整可观测性平台（推荐） |
+    | `observability/prometheus` | Prometheus 监控 |
+    | `observability/grafana` | Grafana 可视化 |
+    | `observability/deepflow` | DeepFlow 可观测性 |
+    | `observability/elasticsearch` | Elasticsearch 日志存储 |
+
+    ## 🔄 升级操作流程
+
+    ### 升级到最新版本
+    1. 调用 `helm_repo_update` 更新索引
+    2. 调用 `helm_upgrade` 升级 release
+       - release_name: `observability`
+       - chart: `observability/observability`
+       - namespace: `xnet`
+
+    ### 回滚版本
+    1. 调用 `helm_history` 查看历史版本
+    2. 调用 `helm_rollback` 回滚到指定版本
+
+    ## 🗑️ 卸载操作
+
+    调用工具: `helm_uninstall`
+    参数:
+    - release_name: `observability`
+    - namespace: `xnet`
+
+    ## ⚠️ 故障排查
+
+    ### 如果 MCP 工具调用失败
+    1. 检查 MCP 服务器是否正常运行
+    2. 检查网络是否可达 `192.168.1.63`
+    3. 确认凭证是否正确
+
+    ### 验证组件状态（可使用 kubectl）
+    - `kubectl get pods -n xnet`
+    - `kubectl get svc -n xnet`
+
+    ## 🚫 禁止事项
+    - ❌ 禁止使用 `run_bash_command` 执行 `helm` 命令
+    - ❌ 禁止使用 `run_bash_command` 执行 `helm repo add/update/list`
+    - ❌ 禁止使用 `run_bash_command` 执行 `helm install/upgrade/uninstall`
+    - ✅ 必须使用上述 MCP 工具完成所有 Helm 操作

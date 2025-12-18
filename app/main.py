@@ -116,18 +116,6 @@ app.add_middleware(
 register_routes(app)
 
 
-# 添加 MCP 状态查询端点
-@app.get("/api/v1/mcp/status")
-async def get_mcp_status():
-    """获取 MCP 服务器状态"""
-    from app.core.mcp_manager import get_mcp_manager
-    manager = get_mcp_manager()
-    return {
-        "success": True,
-        "servers": manager.get_status()
-    }
-
-
 def create_app() -> FastAPI:
     """创建并返回 FastAPI 应用实例"""
     return app
@@ -140,11 +128,16 @@ def main():
     port = int(os.getenv("API_PORT", "8000"))
     host = os.getenv("API_HOST", "0.0.0.0")
     
-    logger.info(f"🚀 启动 HolmesGPT API 服务器")
+    logger.info(f"🚀 启动 AIOps Copilot API 服务器")
     logger.info(f"   地址: http://{host}:{port}")
+    logger.info(f"")
+    logger.info(f"   📖 使用方式:")
+    logger.info(f"   curl -G 'http://{host}:{port}/ask' --data-urlencode 'q=你的问题'")
+    logger.info(f"   curl -X POST 'http://{host}:{port}/ask' -d 'q=你的问题'")
+    logger.info(f"")
+    logger.info(f"   🔗 其他端点:")
     logger.info(f"   API 文档: http://{host}:{port}/docs")
     logger.info(f"   健康检查: http://{host}:{port}/health")
-    logger.info(f"   MCP 状态: http://{host}:{port}/api/v1/mcp/status")
     
     log_config = {
         "version": 1,

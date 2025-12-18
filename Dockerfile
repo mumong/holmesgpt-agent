@@ -39,6 +39,16 @@ RUN curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubec
     && mv kubectl /usr/local/bin/ \
     && kubectl version --client
 
+
+# 安装 Helm 并预配置常用仓库
+RUN curl -fsSL https://get.helm.sh/helm-v3.14.0-linux-amd64.tar.gz | tar -xzf - \
+    && mv linux-amd64/helm /usr/local/bin/helm \
+    && rm -rf linux-amd64 \
+    && helm version --short \
+    && helm repo add bitnami https://charts.bitnami.com/bitnami \
+    && helm repo add stable https://charts.helm.sh/stable \
+    && helm repo update
+    
 # 复制依赖文件
 COPY requirements.txt .
 

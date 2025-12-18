@@ -36,3 +36,9 @@ data:
           url: "http://mcp-server-manager.mcp:8088/sse"
           mode: "sse"
         enabled: true
+      helmcharts:
+        description: "Helm MCP 工具集 - 用于查询 Helm 资源"
+        config:
+          url: "http://mcp-server-manager.mcp:8092/sse"
+          mode: "sse"
+        enabled: true

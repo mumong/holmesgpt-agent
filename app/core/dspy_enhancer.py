@@ -81,11 +81,14 @@ class QueryClassification(dspy.Signature):
     - disk_full: 磁盘空间耗尽 (No space left on device)
     - pod_crash: 容器崩溃循环 (CrashLoopBackOff)
     - port_conflict: 端口被占用 (Address already in use)
+    
+    操作类:
+    - helm_install: Helm 安装/管理 (helm install, 安装 observability, 部署监控)
     """
     user_query: str = dspy.InputField(desc="用户的问题或告警信息")
     
     problem_type: str = dspy.OutputField(
-        desc="问题类型: disk_full(磁盘满) | pod_crash(容器崩溃/CrashLoopBackOff) | port_conflict(端口占用) | oom_killed(内存溢出) | pending(调度问题) | network(网络问题) | image(镜像问题) | unknown"
+        desc="问题类型: disk_full(磁盘满) | pod_crash(容器崩溃/CrashLoopBackOff) | port_conflict(端口占用) | oom_killed(内存溢出) | pending(调度问题) | network(网络问题) | image(镜像问题) | helm_install(Helm安装/管理) | unknown"
     )
     key_resources: str = dspy.OutputField(
         desc="关键资源: 提取的 hostname、namespace、pod、service、port、path 等信息"

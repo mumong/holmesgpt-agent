@@ -1,51 +1,199 @@
 #!/usr/bin/env python3
 """
-API Routes
-定义所有 API 端点和路由处理逻辑
+API Routes - AIOps Copilot API 端点
+
+设计原则：
+1. 简单优先：GET 请求 + query parameter 即可使用
+2. 灵活可选：POST 请求支持更多自定义选项
+3. 流式输出：默认返回易读的纯文本流
+
+API 使用示例：
+    # 最简单的方式（推荐）
+    curl "http://localhost:8000/ask?q=Pod一直重启怎么办"
+    
+    # 流式输出（默认）
+    curl -N "http://localhost:8000/ask?q=磁盘满了"
+    
+    # POST 方式（自定义选项）
+    curl -X POST "http://localhost:8000/ask" -d "q=Pod状态异常"
 """
 import logging
-from datetime import datetime
-from typing import Generator
+from typing import Optional, Generator
+from urllib.parse import unquote
 
-from fastapi import HTTPException, BackgroundTasks
-from fastapi.responses import StreamingResponse
+from fastapi import HTTPException, Query, Form
+from fastapi.responses import StreamingResponse, PlainTextResponse
 
 from app.core.service import get_service
-from app.api.models import QueryRequest, QueryResponse
 
 logger = logging.getLogger(__name__)
 
 
 def register_routes(app):
-    """
-    注册所有 API 路由到 FastAPI 应用
+    """注册所有 API 路由"""
     
-    Args:
-        app: FastAPI 应用实例
-    """
+    # =========================================================================
+    # 核心 API：/ask - 统一的查询入口
+    # =========================================================================
+    
+    @app.get("/ask")
+    async def ask_get(
+        q: str = Query(..., description="问题内容", example="Pod一直重启怎么办"),
+        stream: bool = Query(True, description="是否流式输出"),
+        format: str = Query("text", description="输出格式: text(默认) 或 sse"),
+        max_steps: int = Query(20, description="最大执行步数", ge=1, le=100),
+    ):
+        """
+        🔍 智能运维查询（GET 方式）
+        
+        最简单的使用方式，直接在 URL 中传入问题：
+        
+        ```bash
+        # 基本用法
+        curl "http://localhost:8000/ask?q=Pod一直重启"
+        
+        # 流式输出（默认开启）
+        curl -N "http://localhost:8000/ask?q=磁盘满了怎么清理"
+        
+        # 非流式输出
+        curl "http://localhost:8000/ask?q=查看集群状态&stream=false"
+        ```
+        """
+        question = unquote(q)
+        logger.info(f"📝 收到查询: {question[:80]}...")
+        
+        if stream:
+            return _stream_response(question, format, max_steps)
+        else:
+            return await _sync_response(question, max_steps)
+    
+    @app.post("/ask")
+    async def ask_post(
+        q: str = Form(..., description="问题内容"),
+        stream: bool = Form(True, description="是否流式输出"),
+        format: str = Form("text", description="输出格式"),
+        max_steps: int = Form(20, description="最大执行步数"),
+    ):
+        """
+        🔍 智能运维查询（POST 表单方式）
+        
+        支持表单提交，适合复杂问题：
+        
+        ```bash
+        curl -X POST "http://localhost:8000/ask" -d "q=Pod一直重启"
+        
+        curl -X POST "http://localhost:8000/ask" \\
+          -d "q=查看 namespace kube-system 下所有 Pod 状态" \\
+          -d "max_steps=30"
+        ```
+        """
+        question = q
+        logger.info(f"📝 收到查询 (POST): {question[:80]}...")
+        
+        if stream:
+            return _stream_response(question, format, max_steps)
+        else:
+            return await _sync_response(question, max_steps)
+    
+    # =========================================================================
+    # 便捷别名路由
+    # =========================================================================
+    
+    @app.get("/q/{question:path}")
+    async def ask_path(
+        question: str,
+        stream: bool = Query(True),
+        format: str = Query("text"),
+        max_steps: int = Query(20, ge=1, le=100),
+    ):
+        """
+        🔍 路径参数方式查询
+        
+        更简洁的 URL 风格：
+        
+        ```bash
+        curl "http://localhost:8000/q/Pod一直重启怎么办"
+        curl -N "http://localhost:8000/q/磁盘使用率查询"
+        ```
+        
+        注意：问题中的特殊字符需要 URL 编码
+        """
+        question = unquote(question)
+        logger.info(f"📝 收到查询 (路径): {question[:80]}...")
+        
+        if stream:
+            return _stream_response(question, format, max_steps)
+        else:
+            return await _sync_response(question, max_steps)
+    
+    # =========================================================================
+    # 兼容旧 API（保持向后兼容）
+    # =========================================================================
+    
+    @app.post("/api/v1/query/stream")
+    async def legacy_query_stream(request: dict):
+        """
+        [兼容] 旧版流式查询 API
+        
+        保留向后兼容，推荐使用 /ask
+        """
+        question = request.get("question", "")
+        output_format = request.get("output_format", "text")
+        max_steps = request.get("max_steps", 20)
+        
+        logger.info(f"📝 收到查询 (旧API): {question[:80]}...")
+        return _stream_response(question, output_format, max_steps)
+    
+    @app.post("/api/v1/query")
+    async def legacy_query(request: dict):
+        """
+        [兼容] 旧版同步查询 API
+        
+        保留向后兼容，推荐使用 /ask?stream=false
+        """
+        question = request.get("question", "")
+        max_steps = request.get("max_steps", 20)
+        
+        logger.info(f"📝 收到查询 (旧API): {question[:80]}...")
+        return await _sync_response(question, max_steps)
+    
+    # =========================================================================
+    # 辅助端点
+    # =========================================================================
     
     @app.get("/")
     async def root():
-        """根端点，返回 API 信息"""
+        """API 信息和使用说明"""
         return {
-            "service": "HolmesGPT API Server",
-            "version": "1.0.0",
+            "service": "AIOps Copilot",
+            "version": "2.0.0",
             "status": "running",
+            "usage": {
+                "中文查询(推荐)": "curl -G 'http://HOST/ask' --data-urlencode 'q=你的问题'",
+                "POST方式": "curl -X POST 'http://HOST/ask' -d 'q=你的问题'",
+                "英文查询": "curl 'http://HOST/ask?q=your+question'",
+            },
+            "examples": [
+                "curl -G 'http://localhost:30800/ask' --data-urlencode 'q=Pod一直重启'",
+                "curl -X POST 'http://localhost:30800/ask' -d 'q=磁盘满了怎么清理'",
+                "curl 'http://localhost:30800/ask?q=check+cluster+health'",
+            ],
             "endpoints": {
-                "query": "/api/v1/query",
-                "query_stream": "/api/v1/query/stream",
-                "health": "/health",
-                "tools": "/api/v1/tools"
-            }
+                "/ask": "GET/POST - 主要查询入口",
+                "/health": "GET - 健康检查",
+                "/tools": "GET - 可用工具列表",
+                "/runbooks": "GET - 可用 Runbooks",
+            },
+            "note": "中文问题需要 URL 编码，推荐使用 --data-urlencode 或 POST 方式"
         }
     
     @app.get("/health")
     async def health_check():
-        """健康检查端点"""
+        """健康检查"""
         service = get_service()
         return service.health_check()
     
-    @app.get("/api/v1/tools")
+    @app.get("/tools")
     async def list_tools():
         """列出所有可用的工具"""
         try:
@@ -55,91 +203,56 @@ def register_routes(app):
             logger.error(f"获取工具列表失败: {e}", exc_info=True)
             raise HTTPException(status_code=500, detail=str(e))
     
-    @app.post("/api/v1/query", response_model=QueryResponse)
-    async def query(request: QueryRequest):
-        """
-        执行查询的主要端点
-        
-        接收用户问题，执行 HolmesGPT 分析，返回结果
-        """
-        logger.info(f"收到查询请求: {request.question[:100]}...")
-        
+    @app.get("/runbooks")
+    async def list_runbooks():
+        """列出所有可用的 Runbooks"""
         try:
             service = get_service()
-            result = service.execute_query(
-                question=request.question,
-                system_prompt=request.system_prompt,
-                api_key=request.api_key,
-                model=request.model,
-                max_steps=request.max_steps
-            )
-            
-            # 转换为 QueryResponse 模型
-            response = QueryResponse(**result)
-            
-            if not response.success:
-                raise HTTPException(status_code=500, detail=response.error)
-            
-            return response
-            
-        except HTTPException:
-            raise
+            if service.merged_catalog and service.merged_catalog.catalog:
+                runbooks = []
+                for entry in service.merged_catalog.catalog:
+                    if hasattr(entry, 'id'):
+                        runbooks.append({
+                            "id": entry.id,
+                            "description": getattr(entry, 'description', ''),
+                            "link": getattr(entry, 'link', '')
+                        })
+                return {"count": len(runbooks), "runbooks": runbooks}
+            return {"count": 0, "runbooks": []}
         except Exception as e:
-            logger.error(f"处理查询请求时出错: {e}", exc_info=True)
+            logger.error(f"获取 Runbooks 失败: {e}", exc_info=True)
             raise HTTPException(status_code=500, detail=str(e))
     
-    @app.post("/api/v1/query/stream")
-    async def query_stream(request: QueryRequest):
-        """
-        流式执行查询的端点
+    @app.get("/api/v1/mcp/status")
+    async def get_mcp_status():
+        """获取 MCP 服务器状态"""
+        from app.core.mcp_manager import get_mcp_manager
+        manager = get_mcp_manager()
+        return {"success": True, "servers": manager.get_status()}
+    
+    # =========================================================================
+    # 内部辅助函数
+    # =========================================================================
+    
+    def _stream_response(question: str, output_format: str, max_steps: int):
+        """生成流式响应"""
         
-        接收用户问题，执行 HolmesGPT 分析，以流式方式返回结果。
-        
-        输出格式（通过 output_format 参数控制）：
-        - "text" (默认): 易读的纯文本格式，适合 curl 直接查看
-        - "sse": JSON 格式的 SSE 事件，适合程序解析
-        
-        使用示例（推荐，易读输出）:
-        curl -N -X POST "http://localhost:8000/api/v1/query/stream" \\
-          -H "Content-Type: application/json" \\
-          -d '{"question": "我的 Pod 一直在重启"}'
-        
-        使用示例（SSE 格式，程序解析）:
-        curl -N -X POST "http://localhost:8000/api/v1/query/stream" \\
-          -H "Content-Type: application/json" \\
-          -d '{"question": "我的 Pod 一直在重启", "output_format": "sse"}'
-        """
-        output_format = request.output_format or "text"
-        logger.info(f"收到流式查询请求 [格式: {output_format}]: {request.question[:100]}...")
-        
-        def generate_stream() -> Generator[str, None, None]:
-            """生成流式输出"""
+        def generate() -> Generator[str, None, None]:
             try:
                 service = get_service()
                 yield from service.execute_query_stream(
-                    question=request.question,
-                    system_prompt=request.system_prompt,
-                    api_key=request.api_key,
-                    model=request.model,
-                    max_steps=request.max_steps,
+                    question=question,
+                    max_steps=max_steps,
                     output_format=output_format
                 )
             except Exception as e:
                 logger.error(f"流式查询出错: {e}", exc_info=True)
-                if output_format == "sse":
-                    import json
-                    yield f"event: error\ndata: {json.dumps({'error': str(e)}, ensure_ascii=False)}\n\n"
-                else:
-                    yield f"\n❌ 错误: {str(e)}\n"
+                yield f"\n❌ 错误: {str(e)}\n"
         
-        # 根据输出格式设置不同的 Content-Type
-        if output_format == "sse":
-            media_type = "text/event-stream"
-        else:
-            media_type = "text/plain; charset=utf-8"
+        media_type = "text/event-stream" if output_format == "sse" else "text/plain; charset=utf-8"
         
         return StreamingResponse(
-            generate_stream(),
+            generate(),
             media_type=media_type,
             headers={
                 "Cache-Control": "no-cache",
@@ -148,38 +261,25 @@ def register_routes(app):
             }
         )
     
-    @app.post("/api/v1/query/async")
-    async def query_async(request: QueryRequest, background_tasks: BackgroundTasks):
-        """
-        异步执行查询（立即返回，后台执行）
-        
-        注意：这是一个简化版本，实际生产环境应该使用任务队列（如 Celery）
-        """
-        # 生成任务 ID
-        task_id = f"task_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}"
-        
-        logger.info(f"收到异步查询请求 [Task ID: {task_id}]: {request.question[:100]}...")
-        
+    async def _sync_response(question: str, max_steps: int):
+        """生成同步响应"""
         try:
             service = get_service()
             result = service.execute_query(
-                question=request.question,
-                system_prompt=request.system_prompt,
-                api_key=request.api_key,
-                model=request.model,
-                max_steps=request.max_steps
+                question=question,
+                max_steps=max_steps
             )
             
-            return {
-                "task_id": task_id,
-                "status": "completed" if result.get("success") else "failed",
-                "result": result
-            }
+            if result.get("success"):
+                return PlainTextResponse(
+                    content=result.get("result", ""),
+                    media_type="text/plain; charset=utf-8"
+                )
+            else:
+                raise HTTPException(status_code=500, detail=result.get("error"))
+                
+        except HTTPException:
+            raise
         except Exception as e:
-            logger.error(f"处理异步查询请求时出错: {e}", exc_info=True)
-            return {
-                "task_id": task_id,
-                "status": "failed",
-                "error": str(e)
-            }
-
+            logger.error(f"查询出错: {e}", exc_info=True)
+            raise HTTPException(status_code=500, detail=str(e))

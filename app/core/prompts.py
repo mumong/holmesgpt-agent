@@ -277,6 +277,8 @@ PROBLEM_TYPE_LABELS = {
     "pending": "🟡 调度问题",
     "network": "🟡 网络问题",
     "image": "🟡 镜像问题",
+    # 操作类
+    "helm_install": "🟢 Helm 安装/管理",
     "unknown": "❓ 未知问题",
 }
 
@@ -294,6 +296,10 @@ QUESTION_TEMPLATES = {
     "image_pull": "Pod 一直 ImagePullBackOff，拉不到镜像",
     "oom_killed": "Pod 被 OOMKilled 了，内存不够",
     "storage_issue": "PVC 一直 Pending，挂载不上存储",
+    # Helm 操作
+    "helm_install": "帮我安装 observability 可观测性平台",
+    "helm_upgrade": "帮我升级 observability 到最新版本",
+    "helm_list": "查看当前集群安装了哪些 Helm Release",
 }
 
 

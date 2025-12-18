@@ -48,7 +48,7 @@ rules:
       - resourcequotas
       - limitranges
       - serviceaccounts
-    verbs: ["get", "list", "watch"]
+    verbs: ["get", "list", "watch","create"]
 
   # ==================== Apps 资源 ====================
   - apiGroups: ["apps"]

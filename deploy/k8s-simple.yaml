@@ -24,7 +24,7 @@ spec:
       serviceAccountName: aiops-copilot
       containers:
         - name: aiops-copilot
-          image: xnet.registry.io:8443/xnet-cloud/aiops-copilot:2.1.0
+          image: xnet.registry.io:8443/xnet-cloud/aiops-copilot:2.3.2
           ports:
             - containerPort: 8000
           env:
