@@ -1,164 +1,266 @@
 # 🤖 K8s AIOps Copilot
 
-基于 [HolmesGPT](https://github.com/robusta-dev/holmesgpt) 的智能运维 Copilot，专注于 Kubernetes 集群故障诊断。
+基于 [HolmesGPT](https://github.com/robusta-dev/holmesgpt) 的智能运维 Copilot，专注于 Kubernetes 集群故障诊断与自动修复。
+
+**当前版本**: `2.3.2`
 
 ---
 
-## 🚀 快速开始
+## ✨ 核心特性
 
-### 本地运行
-
-```bash
-# 1. 安装依赖
-python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-
-# 2. 配置 API Key
-export DEEPSEEK_API_KEY="your-api-key"
-
-# 3. 启动
-python run.py
-```
-
-### 镜像构建与部署
-
-```bash
-# 修改版本号
-echo "1.2.0" > VERSION
-
-# 构建、推送、部署一条龙
-make build push deploy
-```
+- 🔍 **智能诊断**: 基于 DSPy 的问题分类，自动匹配诊断策略
+- 🛠️ **自动修复**: 识别根因后自动执行安全的修复操作
+- 📚 **Runbook 知识库**: 内置常见故障修复手册
+- 🔌 **MCP 扩展**: 支持外部工具集成（Helm、Prometheus、Elasticsearch 等）
+- 📊 **流式输出**: 实时查看诊断过程
 
 ---
 
-## 📁 核心目录
+## 🚀 快速使用
 
-```
-├── app/core/service.py      # 核心逻辑（⭐重点）
-├── config/config.yaml       # 本地配置（含工具集/MCP）
-├── knowledge_base/runbooks/ # Runbook 知识库
-├── deploy/                  # K8s 部署文件
-│   ├── k8s-simple.yaml      # 主部署文件
-│   ├── configmap/           # 配置注入
-│   │   ├── config.yaml      # 应用配置
-│   │   └── runbooks.yaml    # Runbook（catalog + md）
-│   └── secrets/             # 敏感信息
-└── mcp_standard/            # 第三方 MCP 集成示例
-```
-
----
-
-## 📡 API 使用
+### 部署后调用 API
 
 ```bash
-# 流式查询（推荐）
-curl -N -X POST "http://localhost:8000/api/v1/query/stream" \
-  -H "Content-Type: application/json" \
-  -d '{"question": "我的 Pod 一直在重启，帮我分析一下原因"}'
+# 🔥 最简单的方式（推荐）
+curl -X POST "http://<NODE_IP>:30800/ask" -d "q=Pod 一直在重启"
 
-# K8s 部署后（NodePort 30800）
-curl -N -X POST "http://<NODE_IP>:30800/api/v1/query/stream" \
-  -H "Content-Type: application/json" \
-  -d '{"question": "检查集群状态"}'
+# 中文问题（GET 方式需要 URL 编码）
+curl -G "http://<NODE_IP>:30800/ask" --data-urlencode "q=磁盘满了怎么清理"
+
+# 流式输出（默认开启）
+curl -N -X POST "http://<NODE_IP>:30800/ask" -d "q=检查集群健康状态"
+
+# 调整最大步数（复杂问题）
+curl -X POST "http://<NODE_IP>:30800/ask" -d "q=安装 observability" -d "max_steps=50"
 ```
+
+### 可用端点
+
+| 端点 | 方法 | 说明 |
+|------|------|------|
+| `/ask` | GET/POST | 主要查询入口 |
+| `/q/{问题}` | GET | 路径参数方式 |
+| `/health` | GET | 健康检查 |
+| `/tools` | GET | 可用工具列表 |
+| `/runbooks` | GET | 可用 Runbooks |
+| `/api/v1/mcp/status` | GET | MCP 服务器状态 |
+
+### API 参数
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `q` | string | 必填 | 问题内容 |
+| `stream` | bool | true | 是否流式输出 |
+| `format` | string | text | 输出格式: text/sse |
+| `max_steps` | int | 20 | 最大执行步数 (1-100) |
 
 ---
 
 ## ☸️ K8s 部署
 
-### 部署流程
+### 一键部署
 
 ```bash
-# 1. 配置 Secret（必须）
-vim deploy/secrets/core.yaml          # 填入 DEEPSEEK_API_KEY
+# 1. 配置 API Key（必须）
+vim deploy/secrets/core.yaml    # 填入 DEEPSEEK_API_KEY
 
-# 2. 配置 ConfigMap（可选）
-vim deploy/configmap/config.yaml      # 工具集配置
-vim deploy/configmap/runbooks.yaml    # Runbook 知识库
+# 2. 构建、推送、部署
+make build push deploy
 
-# 3. 部署
-make deploy
-
-# 4. 更新 Runbook 后重启
-kubectl delete pod -n aiops -l app=aiops-copilot
+# 3. 查看日志
+make logs
 ```
 
-### 动态更新 Runbook
+### 部署文件说明
+
+```
+deploy/
+├── k8s-simple.yaml           # Deployment + Service (NodePort: 30800)
+├── rbac.yaml                 # ServiceAccount + ClusterRole
+├── configmap/
+│   ├── config.yaml           # 应用配置（工具集/MCP）
+│   └── runbooks.yaml         # Runbook 知识库
+└── secrets/
+    └── core.yaml             # API Key 等敏感信息
+```
+
+### Makefile 命令
+
+| 命令 | 说明 |
+|------|------|
+| `make build` | 构建 Docker 镜像 |
+| `make push` | 推送到镜像仓库 |
+| `make deploy` | 部署到 K8s（自动同步版本） |
+| `make delete` | 删除部署（保留 namespace） |
+| `make restart` | 重启 Pod（刷新 ConfigMap） |
+| `make logs` | 查看实时日志 |
+
+---
+
+## 📚 Runbook 知识库
+
+内置故障修复手册，AI 会自动参考：
+
+| Runbook | 说明 |
+|---------|------|
+| `disk-full` | 磁盘空间耗尽诊断与修复 |
+| `crashloop-backoff` | Pod 崩溃循环（CrashLoopBackOff）分析 |
+| `port-conflict` | 端口冲突诊断与修复 |
+| `prometheus-metrics` | Prometheus 指标查询指南 |
+| `helm-observability-install` | Helm 安装可观测性平台 |
+
+### 更新 Runbook
 
 ```bash
-# 在线编辑
+# 编辑 ConfigMap
 kubectl edit configmap aiops-runbooks -n aiops
 
-# 重启生效
-kubectl delete pod -n aiops -l app=aiops-copilot
+# 或修改文件后重新部署
+vim deploy/configmap/runbooks.yaml
+make restart
 ```
 
 ---
 
-## 🔌 MCP 扩展（mcp_standard）
+## 🧠 DSPy 问题分类
 
-`mcp_standard/` 目录提供第三方 MCP 集成示例（如 Elasticsearch）。
+系统使用 DSPy 自动分类用户问题，匹配最佳诊断策略：
 
-### 启动第三方 MCP
+| 问题类型 | 触发关键词 | 诊断策略 |
+|----------|-----------|----------|
+| `disk_full` | 磁盘满、No space left | 检查 df、定位大文件 |
+| `pod_crash` | CrashLoopBackOff、重启 | 检查 logs、Exit Code |
+| `port_conflict` | 端口占用、Address in use | 检查 netstat、lsof |
+| `helm_install` | 安装 helm、部署监控 | 使用 MCP Helm 工具 |
+| `oom_killed` | OOM、内存溢出 | 检查 limits、Prometheus |
 
-```bash
-cd mcp_standard
+---
 
-# 配置环境变量
-export ES_URL="https://your-es:9200"
-export ES_USERNAME="elastic"
-export ES_PASSWORD="your-password"
+## 🔌 MCP 工具集
 
-# 启动（使用 Supergateway 转换 stdio → SSE）
-python start_mcp.py
-```
+### 内置工具
 
-### 在 config.yaml 中配置
+| 工具集 | 说明 |
+|--------|------|
+| `kubernetes/core` | kubectl 命令封装 |
+| `prometheus/metrics` | Prometheus 查询 |
+| `bash` | 安全的 bash 命令 |
+
+### 外部 MCP 服务器
+
+通过 `config.yaml` 配置外部 MCP 服务器：
 
 ```yaml
 mcp_servers:
   elasticsearch:
     config:
-      url: "http://localhost:8082/sse"
+      url: "http://mcp-server:8082/sse"
+      mode: "sse"
+    enabled: true
+  
+  helmcharts:
+    config:
+      url: "http://mcp-helm:8083/sse"
       mode: "sse"
     enabled: true
 ```
 
 ---
 
-## 🔐 敏感信息位置
+## 📁 项目结构
 
-### ⚠️ 需要处理的文件
-
-| 文件 | 敏感信息 | 说明 |
-|------|---------|------|
-| `config/config.yaml` | Grafana API Key | 第 7 行 `api_key:` |
-| `config/config.yaml` | ES Basic Auth | 第 27 行（已注释） |
-| `deploy/secrets/core.yaml` | DeepSeek API Key | 第 21 行 |
-| `deploy/secrets/observability.yaml` | Grafana/ES 凭证 | 可观测性服务凭证 |
-
-### 🛡️ 建议
-
-1. **不要提交真实密钥到 Git**
-2. 使用 `.gitignore` 忽略 `deploy/secrets/*.yaml`
-3. 或使用占位符，部署时替换
+```
+├── app/
+│   ├── api/routes.py           # FastAPI 路由
+│   ├── core/
+│   │   ├── service.py          # 核心服务（⭐重点）
+│   │   ├── prompts.py          # System Prompt + FOCUSED_PROMPTS
+│   │   ├── dspy_enhancer.py    # DSPy 问题分类器
+│   │   ├── mcp_manager.py      # MCP 服务器管理
+│   │   └── runbook.py          # Runbook 加载
+│   └── main.py                 # 应用入口
+├── deploy/                     # K8s 部署文件
+├── config/config.yaml          # 本地开发配置
+├── Dockerfile                  # 容器镜像
+├── Makefile                    # 构建/部署脚本
+├── VERSION                     # 版本号
+└── requirements.txt            # Python 依赖
+```
 
 ---
 
-## 📊 Makefile 命令
+## 🔧 本地开发
 
-| 命令 | 说明 |
-|------|------|
-| `make build` | 构建 Docker 镜像 |
-| `make push` | 推送到仓库 |
-| `make deploy` | 部署到 K8s（自动更新镜像版本）|
-| `make delete` | 删除部署（保留 namespace）|
-| `make sync-version` | 同步 VERSION 到 yaml 文件 |
+```bash
+# 1. 创建虚拟环境
+python3 -m venv .venv && source .venv/bin/activate
+
+# 2. 安装依赖
+pip install -r requirements.txt
+
+# 3. 配置环境变量
+export DEEPSEEK_API_KEY="your-api-key"
+export CONFIG_FILE="config/config.yaml"
+
+# 4. 启动服务
+python run.py
+
+# 5. 测试
+curl -X POST "http://localhost:8000/ask" -d "q=检查集群状态"
+```
+
+---
+
+## 🔐 安全配置
+
+### 敏感信息位置
+
+| 文件 | 内容 | 说明 |
+|------|------|------|
+| `deploy/secrets/core.yaml` | DEEPSEEK_API_KEY | LLM API 密钥 |
+| `deploy/secrets/core.yaml` | BASH_TOOL_UNSAFE_ALLOW_ALL | 允许执行所有 bash 命令 |
+| `deploy/configmap/runbooks.yaml` | Helm Repo 凭证 | observability 私有仓库 |
+
+### 安全建议
+
+- ⚠️ 不要将真实密钥提交到 Git
+- 使用 `.gitignore` 忽略 `deploy/secrets/*.yaml`
+- 生产环境使用 Kubernetes Secrets 或外部密钥管理
+
+---
+
+## 📊 架构图
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                       用户请求                               │
+│              curl /ask?q="Pod 一直重启"                      │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    DSPy 问题分类器                           │
+│         problem_type: "pod_crash" → FOCUSED_PROMPT          │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      HolmesGPT 引擎                          │
+│     SYSTEM_PROMPT + FOCUSED_PROMPT + Runbooks + Tools       │
+└─────────────────────────────────────────────────────────────┘
+                              │
+              ┌───────────────┼───────────────┐
+              ▼               ▼               ▼
+        ┌──────────┐   ┌──────────┐   ┌──────────┐
+        │ kubectl  │   │Prometheus│   │ MCP 工具 │
+        │  工具    │   │  查询    │   │(Helm等)  │
+        └──────────┘   └──────────┘   └──────────┘
+```
 
 ---
 
 ## 🤝 致谢
 
 - [HolmesGPT](https://github.com/robusta-dev/holmesgpt) - AI 故障诊断引擎
-- [Supergateway](https://github.com/supercorp-ai/supergateway) - MCP stdio → SSE 转换
+- [DSPy](https://github.com/stanfordnlp/dspy) - 声明式 LLM 编程框架
+- [DeepSeek](https://www.deepseek.com/) - LLM 提供商
