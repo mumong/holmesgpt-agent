@@ -69,7 +69,7 @@ python api_server.py
 
 curl -N -X POST "http://localhost:8000/api/v1/query/stream" \
   -H "Content-Type: application/json" \
-  -d '{"question": "运行测试工具"}'
+  -d '{"question": "过去1小时集群的cpu使用率是多少？"}'
 
 
 curl -X POST "http://localhost:8000/api/v1/query" \

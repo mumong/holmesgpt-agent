@@ -113,7 +113,12 @@ class HolmesService:
             )
         
         # 确定使用的模型
-        final_model = model or "deepseek/deepseek-chat"
+        # 优先级: 参数 > 环境变量 DEEPSEEK_MODEL > 默认值
+        env_model = os.getenv("DEEPSEEK_MODEL")
+        if env_model and not env_model.startswith("deepseek/"):
+            # LiteLLM 需要 deepseek/ 前缀
+            env_model = f"deepseek/{env_model}"
+        final_model = model or env_model or "deepseek/deepseek-chat"
         
         # 加载配置（需要先创建一个临时配置文件，移除 stream_output 字段）
         if config_file.exists():

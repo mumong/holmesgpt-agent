@@ -12,58 +12,176 @@ data:
     {
       "catalog": [
         {
+          "_comment": "========== L0: 基础设施层 (Infrastructure) ==========",
+          "id": "infra-disk-full",
+          "type": "knowledge",
+          "layer": "L0",
+          "update_date": "2026-01-04",
+          "description": "【L0-知识型】磁盘空间耗尽 - No space left on device、日志膨胀、Docker 镜像堆积",
+          "link": "infra-disk-full.md"
+        },
+        {
+          "id": "infra-memory-exhausted",
+          "type": "knowledge",
+          "layer": "L0",
+          "update_date": "2026-01-04",
+          "description": "【L0-知识型】系统内存耗尽 - 系统 OOM、进程被 killed、内存泄漏排查",
+          "link": "infra-memory-exhausted.md"
+        },
+        {
+          "id": "infra-cpu-saturation",
+          "type": "knowledge",
+          "layer": "L0",
+          "update_date": "2026-01-04",
+          "description": "【L0-知识型】CPU 饱和 - 高 load average、进程响应慢、CPU 密集型进程定位",
+          "link": "infra-cpu-saturation.md"
+        },
+        {
+          "_comment": "========== L1: 集群与节点层 (Cluster & Node) ==========",
+          "id": "node-not-ready",
+          "type": "knowledge",
+          "layer": "L1",
+          "update_date": "2026-01-04",
+          "description": "【L1-知识型】节点异常 (NotReady) - kubelet 问题、容器运行时、网络分区",
+          "link": "node-not-ready.md"
+        },
+        {
+          "id": "node-disk-pressure",
+          "type": "knowledge",
+          "layer": "L1",
+          "update_date": "2026-01-04",
+          "description": "【L1-知识型】节点磁盘压力 (DiskPressure) - kubelet 驱逐、清理策略",
+          "link": "node-disk-pressure.md"
+        },
+        {
+          "id": "node-memory-pressure",
+          "type": "knowledge",
+          "layer": "L1",
+          "update_date": "2026-01-04",
+          "description": "【L1-知识型】节点内存压力 (MemoryPressure) - Pod 驱逐、OOM 分析",
+          "link": "node-memory-pressure.md"
+        },
+        {
+          "_comment": "========== L2: 工作负载层 (Workload) ==========",
           "id": "pod-quick-diagnosis",
           "type": "procedure",
+          "layer": "L2",
           "update_date": "2025-12-25",
-          "description": "【流程型】Pod 异常快速诊断入口 - 根据 Pod 状态自动路由到对应的诊断手册",
+          "description": "【L2-流程型】Pod 异常快速诊断入口 - 根据 Pod 状态自动路由到对应的诊断手册",
           "link": "pod-quick-diagnosis.md",
           "operations": ["诊断", "排查", "检查"]
         },
         {
           "id": "pod-pending",
           "type": "knowledge",
+          "layer": "L2",
           "update_date": "2025-12-25",
-          "description": "【知识型】Pod 调度失败 (Pending) - 节点资源不足、亲和性、污点、PVC 等问题",
+          "description": "【L2-知识型】Pod 调度失败 (Pending) - 节点资源不足、亲和性、污点、PVC 等问题",
           "link": "pod-pending.md"
         },
         {
           "id": "pod-image-pull-failed",
           "type": "knowledge",
+          "layer": "L2",
           "update_date": "2025-12-25",
-          "description": "【知识型】镜像拉取失败 (ImagePullBackOff/ErrImagePull) - 镜像地址、网络、认证问题",
+          "description": "【L2-知识型】镜像拉取失败 (ImagePullBackOff/ErrImagePull) - 镜像地址、网络、认证问题",
           "link": "pod-image-pull-failed.md"
         },
         {
           "id": "pod-crashloop-backoff",
           "type": "knowledge",
+          "layer": "L2",
           "update_date": "2025-12-25",
-          "description": "【知识型】容器崩溃循环 (CrashLoopBackOff) - Exit Code 解读、OOM、配置错误、依赖问题",
+          "description": "【L2-知识型】容器崩溃循环 (CrashLoopBackOff) - Exit Code 解读、OOM、配置错误、依赖问题",
           "link": "pod-crashloop-backoff.md"
         },
         {
           "id": "pod-not-ready",
           "type": "knowledge",
+          "layer": "L2",
           "update_date": "2025-12-25",
-          "description": "【知识型】Pod 未就绪 (Running 但 0/1 Ready) - 健康检查失败、Readiness/Liveness Probe 配置问题",
+          "description": "【L2-知识型】Pod 未就绪 (Running 但 0/1 Ready) - 健康检查失败、Readiness/Liveness Probe 配置问题",
           "link": "pod-not-ready.md"
         },
         {
           "id": "pod-terminating",
           "type": "knowledge",
+          "layer": "L2",
           "update_date": "2025-12-25",
-          "description": "【知识型】Pod 删除卡住 (Terminating) - Finalizer 阻塞、节点不可达、强制删除方法",
+          "description": "【L2-知识型】Pod 删除卡住 (Terminating) - Finalizer 阻塞、节点不可达、强制删除方法",
           "link": "pod-terminating.md"
         },
         {
           "id": "pod-evicted",
           "type": "knowledge",
+          "layer": "L2",
           "update_date": "2025-12-25",
-          "description": "【知识型】Pod 被驱逐 (Evicted) - 节点资源压力、ephemeral-storage 超限",
+          "description": "【L2-知识型】Pod 被驱逐 (Evicted) - 节点资源压力、ephemeral-storage 超限",
           "link": "pod-evicted.md"
         },
         {
+          "_comment": "========== L3: 服务与网络层 (Service & Network) ==========",
+          "id": "service-no-endpoints",
+          "type": "knowledge",
+          "layer": "L3",
+          "update_date": "2026-01-04",
+          "description": "【L3-知识型】Service 无后端 (Endpoints 为空) - Selector 不匹配、Pod 未就绪",
+          "link": "service-no-endpoints.md"
+        },
+        {
+          "id": "dns-resolution-failed",
+          "type": "knowledge",
+          "layer": "L3",
+          "update_date": "2026-01-04",
+          "description": "【L3-知识型】DNS 解析失败 - CoreDNS 异常、服务名解析、外部域名解析",
+          "link": "dns-resolution-failed.md"
+        },
+        {
+          "id": "network-connectivity",
+          "type": "knowledge",
+          "layer": "L3",
+          "update_date": "2026-01-04",
+          "description": "【L3-知识型】网络连通性问题 - Pod 间通信、跨节点网络、NetworkPolicy 阻断",
+          "link": "network-connectivity.md"
+        },
+        {
+          "id": "ingress-not-working",
+          "type": "knowledge",
+          "layer": "L3",
+          "update_date": "2026-01-04",
+          "description": "【L3-知识型】Ingress 无法访问 - 404/502/503 错误、证书问题、路由配置",
+          "link": "ingress-not-working.md"
+        },
+        {
+          "_comment": "========== L4: 应用层 (Application) ==========",
+          "id": "app-connection-refused",
+          "type": "knowledge",
+          "layer": "L4",
+          "update_date": "2026-01-04",
+          "description": "【L4-知识型】应用连接被拒绝 - 数据库连接失败、Redis/MQ 超时、依赖服务不可用",
+          "link": "app-connection-refused.md"
+        },
+        {
+          "id": "app-5xx-errors",
+          "type": "knowledge",
+          "layer": "L4",
+          "update_date": "2026-01-04",
+          "description": "【L4-知识型】应用 5xx 错误 - 内部服务器错误、Panic、异常堆栈分析",
+          "link": "app-5xx-errors.md"
+        },
+        {
+          "id": "app-config-errors",
+          "type": "knowledge",
+          "layer": "L4",
+          "update_date": "2026-01-04",
+          "description": "【L4-知识型】应用配置错误 - 环境变量、ConfigMap/Secret 挂载、配置热更新",
+          "link": "app-config-errors.md"
+        },
+        {
+          "_comment": "========== 操作流程类 ==========",
           "id": "helm-observability-install",
           "type": "procedure",
+          "layer": "操作",
           "update_date": "2025-12-16",
           "description": "【流程型】Helm 管理 Observability 平台 - 包含：安装、升级、卸载三个独立流程",
           "link": "helm-observability-install.md",
@@ -868,6 +986,1575 @@ data:
     - 使用 PVC 存储大文件，不要写入容器层
     - 配置 PodDisruptionBudget 保护关键服务
     - 设置节点资源告警
+
+  # ==========================================================================
+  # L0: 磁盘空间耗尽
+  # ==========================================================================
+  infra-disk-full.md: |
+    # 磁盘空间耗尽 (No space left on device) 诊断手册
+
+    > **层级**: `L0` - 基础设施层
+    > **类型**: `knowledge`（知识型）
+    > **适用场景**: 磁盘空间不足导致的各类异常
+
+    ## 故障特征
+
+    **关键词**: `No space left on device`、`disk full`、`ENOSPC`
+    
+    **典型表现**:
+    - 日志写入失败
+    - 镜像拉取失败
+    - 数据库无法写入
+    - Pod 无法启动
+    - etcd 报错
+
+    ## 问题原理
+
+    Linux 文件系统有两种限制：
+    1. **Block 空间**: 实际存储数据的空间 (`df -h` 查看)
+    2. **Inode 数量**: 文件索引节点 (`df -i` 查看)
+
+    任一耗尽都会导致 "No space left on device"
+
+    ## 诊断命令
+
+    ```bash
+    # 1. 查看磁盘使用率（Block）
+    df -h
+    
+    # 2. 查看 Inode 使用率
+    df -i
+    
+    # 3. 定位大目录（从根目录逐层）
+    du -sh /* 2>/dev/null | sort -hr | head -20
+    du -sh /var/* 2>/dev/null | sort -hr | head -10
+    
+    # 4. 查找大文件（>100M）
+    find /var -type f -size +100M 2>/dev/null | head -20
+    
+    # 5. 查看 Docker 磁盘占用
+    docker system df
+    
+    # 6. 查看已删除但未释放的文件（被进程占用）
+    lsof +L1 | grep deleted | head -20
+    ```
+
+    ## 常见场景与解决方案
+
+    ### 场景 1: 日志膨胀 (/var/log)
+
+    **根因**: 应用日志未配置 logrotate，或日志级别过低
+    
+    **诊断**:
+    ```bash
+    du -sh /var/log/* | sort -hr | head -10
+    ls -lhS /var/log/*.log | head -10
+    ```
+    
+    **修复**:
+    ```bash
+    # 清理日志（保留文件句柄）
+    truncate -s 0 /var/log/xxx.log
+    
+    # 不要用 rm！会导致进程继续占用已删除文件的空间
+    ```
+
+    ### 场景 2: Docker 镜像堆积 (/var/lib/docker)
+
+    **根因**: 旧镜像未清理、构建缓存堆积
+    
+    **诊断**:
+    ```bash
+    docker system df
+    docker images | wc -l
+    ```
+    
+    **修复**:
+    ```bash
+    # 清理未使用的资源（谨慎！会删除未使用镜像）
+    docker system prune -af
+    
+    # 只清理 dangling 镜像
+    docker image prune -f
+    
+    # 清理构建缓存
+    docker builder prune -af
+    ```
+
+    ### 场景 3: containerd 镜像堆积 (/var/lib/containerd)
+
+    **根因**: K8s 节点长期运行，镜像未清理
+    
+    **修复**:
+    ```bash
+    # 查看 containerd 镜像
+    crictl images
+    
+    # 清理未使用镜像
+    crictl rmi --prune
+    ```
+
+    ### 场景 4: Inode 耗尽
+
+    **特征**: `df -h` 显示有空间，但仍报错
+    
+    **根因**: 大量小文件（如 session 文件、缓存文件）
+    
+    **诊断**:
+    ```bash
+    df -i
+    find /var -xdev -type f | cut -d "/" -f 2-3 | sort | uniq -c | sort -rn | head -20
+    ```
+    
+    **修复**: 清理小文件目录
+
+    ### 场景 5: 已删除但未释放的空间
+
+    **特征**: 删除了大文件，但空间未释放
+    
+    **根因**: 进程仍持有已删除文件的句柄
+    
+    **诊断**:
+    ```bash
+    lsof +L1 | grep deleted
+    ```
+    
+    **修复**: 重启占用进程，或用 `truncate` 代替 `rm`
+
+    ## 🔧 通用修复命令
+
+    ```bash
+    # 快速清理（生产环境慎用）
+    # 1. 清理日志
+    find /var/log -name "*.log" -size +100M -exec truncate -s 0 {} \;
+    
+    # 2. 清理系统缓存
+    sync && echo 3 > /proc/sys/vm/drop_caches
+    
+    # 3. 清理 apt 缓存（Debian/Ubuntu）
+    apt-get clean
+    
+    # 4. 清理 journal 日志
+    journalctl --vacuum-size=100M
+    ```
+
+    ## ⚠️ 风险提示
+
+    - **不要用 `rm -rf /var/log/*`**: 可能删除正在使用的日志文件
+    - **docker system prune -af** 会删除所有未使用镜像
+    - 清理前务必确认目标目录
+
+  # ==========================================================================
+  # L0: 系统内存耗尽
+  # ==========================================================================
+  infra-memory-exhausted.md: |
+    # 系统内存耗尽诊断手册
+
+    > **层级**: `L0` - 基础设施层
+    > **类型**: `knowledge`（知识型）
+    > **适用场景**: 系统内存不足导致进程被 OOM Killer 杀死
+
+    ## 故障特征
+
+    **关键词**: `Out of memory`、`Killed`、`oom-kill`、`Cannot allocate memory`
+    
+    **典型表现**:
+    - 进程被突然杀死
+    - 系统响应变慢
+    - 新进程无法启动
+    - dmesg 中出现 oom-kill 记录
+
+    ## 问题原理
+
+    Linux 内存管理：
+    1. **物理内存 + Swap**: 实际可用内存
+    2. **OOM Killer**: 当内存耗尽时，内核选择性杀死进程释放内存
+    3. **OOM Score**: 每个进程有一个分数，分数越高越容易被杀
+
+    ## 诊断命令
+
+    ```bash
+    # 1. 查看内存使用概况
+    free -h
+    
+    # 2. 查看内存详细信息
+    cat /proc/meminfo | head -20
+    
+    # 3. 查看被 OOM Killer 杀死的进程
+    dmesg | grep -i "oom-kill\|out of memory" | tail -20
+    journalctl -k | grep -i oom
+    
+    # 4. 查看进程内存占用排序
+    ps aux --sort=-%mem | head -20
+    
+    # 5. 查看特定进程的内存使用
+    cat /proc/<pid>/status | grep -E "VmRSS|VmSize"
+    
+    # 6. 查看 OOM Score（谁最容易被杀）
+    for pid in $(pgrep .); do 
+      echo "$pid $(cat /proc/$pid/oom_score 2>/dev/null) $(cat /proc/$pid/comm 2>/dev/null)"
+    done | sort -k2 -rn | head -20
+    ```
+
+    ## 常见场景与解决方案
+
+    ### 场景 1: 应用内存泄漏
+
+    **特征**: 某个进程内存持续增长，最终触发 OOM
+    
+    **诊断**:
+    ```bash
+    # 观察进程内存变化
+    watch -n 5 'ps aux --sort=-%mem | head -10'
+    
+    # 使用 Prometheus 查询历史内存趋势
+    # container_memory_usage_bytes{pod="xxx"}
+    ```
+    
+    **修复**:
+    - 短期：重启进程释放内存
+    - 长期：排查应用内存泄漏
+
+    ### 场景 2: 内存 Limit 设置不合理
+
+    **特征**: Pod 被频繁 OOMKilled，但节点内存充足
+    
+    **诊断**:
+    ```bash
+    kubectl describe pod <pod> | grep -A 5 "Last State"
+    kubectl get pod <pod> -o jsonpath='{.spec.containers[*].resources}'
+    ```
+    
+    **修复**: 调整 Pod 的 memory limits
+
+    ### 场景 3: 系统缓存占用过高
+
+    **特征**: `free -h` 显示可用内存很少，但 buff/cache 很高
+    
+    **说明**: 这通常是正常的！Linux 会利用空闲内存做缓存
+    
+    **验证**:
+    ```bash
+    # available 才是真正可用的内存
+    free -h | grep Mem
+    ```
+    
+    **如需释放缓存**:
+    ```bash
+    sync && echo 3 > /proc/sys/vm/drop_caches
+    ```
+
+    ### 场景 4: Swap 未启用或过小
+
+    **特征**: 没有 Swap 缓冲，OOM 触发更频繁
+    
+    **诊断**:
+    ```bash
+    free -h | grep Swap
+    swapon --show
+    ```
+    
+    **说明**: K8s 环境通常禁用 Swap
+
+    ## 🔧 通用修复命令
+
+    ```bash
+    # 查看当前内存状态
+    free -h
+    
+    # 查看内存大户
+    ps aux --sort=-%mem | head -10
+    
+    # 释放 PageCache（临时措施）
+    sync && echo 1 > /proc/sys/vm/drop_caches
+    
+    # 调整进程 OOM 优先级（不易被杀）
+    echo -1000 > /proc/<pid>/oom_score_adj
+    
+    # 查看 OOM 历史
+    dmesg | grep -i oom | tail -20
+    ```
+
+    ## 证据来源映射
+
+    | 证据 | 来源命令 | 说明 |
+    |------|---------|------|
+    | 内存使用率 | `free -h` | 系统整体内存状态 |
+    | OOM 事件 | `dmesg \| grep oom` | 哪个进程被杀 |
+    | 进程内存 | `ps aux --sort=-%mem` | 谁占用最多 |
+    | 容器内存 | `kubectl describe pod` | K8s 层面的 OOM 信息 |
+
+  # ==========================================================================
+  # L0: CPU 饱和
+  # ==========================================================================
+  infra-cpu-saturation.md: |
+    # CPU 饱和诊断手册
+
+    > **层级**: `L0` - 基础设施层
+    > **类型**: `knowledge`（知识型）
+    > **适用场景**: CPU 使用率过高导致系统响应变慢
+
+    ## 故障特征
+
+    **关键词**: `high load`、`CPU 100%`、`响应慢`、`卡顿`
+    
+    **典型表现**:
+    - 系统响应缓慢
+    - SSH 连接困难
+    - 命令执行延迟
+    - Load Average 异常高
+
+    ## 问题原理
+
+    **Load Average**: 表示系统负载
+    - 等于 CPU 核心数: 刚好满载
+    - 超过 CPU 核心数: 过载，进程需要排队
+
+    **CPU 使用类型**:
+    - `us` (user): 用户态，应用程序
+    - `sy` (system): 内核态，系统调用
+    - `wa` (iowait): 等待 I/O
+    - `si` (softirq): 软中断
+
+    ## 诊断命令
+
+    ```bash
+    # 1. 查看 Load Average
+    uptime
+    cat /proc/loadavg
+    
+    # 2. 查看 CPU 核心数（对比 Load Average）
+    nproc
+    
+    # 3. 实时查看 CPU 使用情况
+    top -bn1 | head -20
+    
+    # 4. 按 CPU 排序查看进程
+    ps aux --sort=-%cpu | head -20
+    
+    # 5. 查看 CPU 使用细分
+    mpstat -P ALL 1 5
+    
+    # 6. 查看中断情况
+    cat /proc/interrupts
+    
+    # 7. 使用 pidstat 查看进程 CPU 使用
+    pidstat -u 1 5
+    ```
+
+    ## 常见场景与解决方案
+
+    ### 场景 1: 某个进程 CPU 100%
+
+    **特征**: 单个进程占用接近 100% CPU
+    
+    **诊断**:
+    ```bash
+    top -bn1 | head -15
+    ps aux --sort=-%cpu | head -5
+    
+    # 查看该进程在做什么
+    strace -p <pid> -c
+    ```
+    
+    **修复**:
+    - 如是死循环/Bug: 重启进程
+    - 如是正常业务: 增加 CPU 限制或扩容
+
+    ### 场景 2: 高 IO Wait
+
+    **特征**: `wa` 值很高，但 `us`/`sy` 不高
+    
+    **根因**: CPU 在等待磁盘 I/O，通常是磁盘瓶颈
+    
+    **诊断**:
+    ```bash
+    iostat -x 1 5
+    iotop -o
+    ```
+    
+    **修复**: 优化磁盘 I/O 或升级存储
+
+    ### 场景 3: 软中断过高 (si)
+
+    **特征**: `si` 值很高
+    
+    **根因**: 网络流量过大、大量网络包处理
+    
+    **诊断**:
+    ```bash
+    cat /proc/softirqs
+    sar -n DEV 1 5
+    ```
+    
+    **修复**: 检查网络流量，可能需要调整 RPS/RFS
+
+    ### 场景 4: K8s 节点 CPU 过载
+
+    **特征**: 多个 Pod 同时消耗 CPU
+    
+    **诊断**:
+    ```bash
+    # 查看节点 CPU 分配
+    kubectl describe node <node> | grep -A 10 "Allocated resources"
+    
+    # 使用 Prometheus 查询
+    # sum(rate(container_cpu_usage_seconds_total{node="xxx"}[5m])) by (pod)
+    ```
+    
+    **修复**:
+    - 设置合理的 CPU requests/limits
+    - 使用 LimitRange 限制单个 Pod 最大 CPU
+    - 节点扩容
+
+    ## 🔧 通用修复命令
+
+    ```bash
+    # 查看当前负载
+    uptime && nproc
+    
+    # 查看 CPU 大户
+    ps aux --sort=-%cpu | head -10
+    
+    # 降低进程优先级
+    renice 19 -p <pid>
+    
+    # 限制进程 CPU（需要 cgroups）
+    # 或使用 cpulimit 工具
+    cpulimit -p <pid> -l 50
+    
+    # 杀死失控进程
+    kill -9 <pid>
+    ```
+
+    ## 证据来源映射
+
+    | 证据 | 来源命令 | 说明 |
+    |------|---------|------|
+    | Load Average | `uptime` | 系统整体负载 |
+    | CPU 使用率 | `top` / `mpstat` | CPU 使用细分 |
+    | 进程 CPU | `ps aux --sort=-%cpu` | 哪个进程占用最多 |
+    | IO Wait | `iostat` | 是否是 I/O 导致 |
+    | 容器 CPU | Prometheus | K8s 层面 CPU 使用 |
+
+  # ==========================================================================
+  # L1: 节点异常 (NotReady)
+  # ==========================================================================
+  node-not-ready.md: |
+    # 节点异常 (NotReady) 诊断手册
+
+    > **层级**: `L1` - 集群与节点层
+    > **类型**: `knowledge`（知识型）
+    > **适用场景**: K8s 节点处于 NotReady 状态
+
+    ## 故障特征
+
+    **关键词**: `NotReady`、`Unknown`、`NodeNotReady`
+    
+    **典型表现**:
+    - `kubectl get nodes` 显示节点状态为 NotReady
+    - 节点上的 Pod 被驱逐或处于 Unknown
+    - 新 Pod 无法调度到该节点
+
+    ## 问题原理
+
+    节点状态由 **kubelet** 定期上报给 API Server：
+    - 默认每 10s 上报一次心跳
+    - 如果 40s 没收到心跳，节点变为 Unknown
+    - 如果 5 分钟仍无心跳，Pod 开始被驱逐
+
+    ## 诊断命令
+
+    ```bash
+    # 1. 查看节点状态
+    kubectl get nodes -o wide
+    
+    # 2. 查看节点详情和 Conditions
+    kubectl describe node <node-name>
+    
+    # 3. 查看节点事件
+    kubectl get events --field-selector involvedObject.name=<node-name>
+    
+    # 4. 检查 kubelet 状态（需登录节点）
+    systemctl status kubelet
+    journalctl -u kubelet --since "30 minutes ago" | tail -100
+    
+    # 5. 检查容器运行时
+    systemctl status containerd
+    # 或
+    systemctl status docker
+    ```
+
+    ## 常见场景与解决方案
+
+    ### 场景 1: kubelet 服务停止
+
+    **特征**: 节点上 kubelet 进程不存在
+    
+    **诊断**:
+    ```bash
+    systemctl status kubelet
+    ```
+    
+    **修复**:
+    ```bash
+    systemctl restart kubelet
+    journalctl -u kubelet -f  # 查看启动日志
+    ```
+
+    ### 场景 2: kubelet 无法连接 API Server
+
+    **特征**: kubelet 日志显示连接超时
+    
+    **诊断**:
+    ```bash
+    journalctl -u kubelet | grep -i "connection\|timeout\|refused"
+    
+    # 测试网络连通性
+    curl -k https://<api-server>:6443/healthz
+    ```
+    
+    **修复**: 检查网络和防火墙
+
+    ### 场景 3: 容器运行时异常
+
+    **特征**: kubelet 日志显示无法连接 containerd/docker
+    
+    **诊断**:
+    ```bash
+    systemctl status containerd
+    crictl ps
+    ```
+    
+    **修复**:
+    ```bash
+    systemctl restart containerd
+    systemctl restart kubelet
+    ```
+
+    ### 场景 4: 磁盘/内存压力
+
+    **特征**: 节点有 DiskPressure/MemoryPressure Condition
+    
+    **诊断**:
+    ```bash
+    kubectl describe node <node> | grep -A 5 Conditions
+    ```
+    
+    **修复**: 参考 L0 磁盘/内存诊断手册
+
+    ### 场景 5: 证书过期
+
+    **特征**: kubelet 日志显示 TLS/证书错误
+    
+    **诊断**:
+    ```bash
+    openssl x509 -in /var/lib/kubelet/pki/kubelet-client-current.pem -noout -dates
+    ```
+    
+    **修复**: 更新证书
+
+    ## 🔧 通用修复命令
+
+    ```bash
+    # 重启 kubelet
+    systemctl restart kubelet
+    
+    # 重启容器运行时
+    systemctl restart containerd
+    
+    # 强制节点恢复（需谨慎）
+    kubectl uncordon <node-name>
+    
+    # 驱逐节点上的 Pod（维护时）
+    kubectl drain <node-name> --ignore-daemonsets --delete-emptydir-data
+    ```
+
+    ## 证据来源映射
+
+    | 证据 | 来源命令 | 说明 |
+    |------|---------|------|
+    | 节点状态 | `kubectl get nodes` | Ready/NotReady |
+    | 节点条件 | `kubectl describe node` | 具体异常原因 |
+    | kubelet 日志 | `journalctl -u kubelet` | 详细错误信息 |
+    | 运行时状态 | `systemctl status containerd` | 容器运行时 |
+
+  # ==========================================================================
+  # L1: 节点磁盘压力 (DiskPressure)
+  # ==========================================================================
+  node-disk-pressure.md: |
+    # 节点磁盘压力 (DiskPressure) 诊断手册
+
+    > **层级**: `L1` - 集群与节点层
+    > **类型**: `knowledge`（知识型）
+    > **适用场景**: 节点出现 DiskPressure 条件
+
+    ## 故障特征
+
+    **关键词**: `DiskPressure`、`nodefs.available`、`imagefs.available`
+    
+    **典型表现**:
+    - `kubectl describe node` 显示 DiskPressure=True
+    - Pod 被驱逐
+    - 新 Pod 无法调度
+
+    ## 问题原理
+
+    kubelet 监控两个文件系统：
+    1. **nodefs**: 节点文件系统（/var/lib/kubelet）
+    2. **imagefs**: 镜像文件系统（/var/lib/docker 或 /var/lib/containerd）
+
+    **默认驱逐阈值**:
+    - `nodefs.available < 10%` → DiskPressure
+    - `imagefs.available < 15%` → 开始清理镜像
+
+    ## 诊断命令
+
+    ```bash
+    # 1. 查看节点条件
+    kubectl describe node <node> | grep -A 5 Conditions
+    
+    # 2. 查看磁盘使用（登录节点）
+    df -h
+    
+    # 3. 查看 kubelet 驱逐阈值配置
+    cat /var/lib/kubelet/config.yaml | grep -A 10 eviction
+    ```
+
+    ## 常见场景与解决方案
+
+    ### 场景 1: /var/lib/docker 或 /var/lib/containerd 满
+
+    **根因**: 镜像和容器数据堆积
+    
+    **修复**:
+    ```bash
+    # 清理未使用镜像
+    crictl rmi --prune
+    # 或
+    docker system prune -af
+    ```
+
+    ### 场景 2: 容器日志占用空间
+
+    **根因**: 容器 stdout/stderr 日志未限制
+    
+    **诊断**:
+    ```bash
+    find /var/lib/docker/containers -name "*-json.log" -size +100M
+    ```
+    
+    **修复**: 配置 Docker/containerd 日志轮转
+
+    ### 场景 3: emptyDir 或 hostPath 占用
+
+    **根因**: Pod 写入大量数据到 emptyDir/hostPath
+    
+    **诊断**:
+    ```bash
+    du -sh /var/lib/kubelet/pods/*/volumes/*
+    ```
+
+    ## 🔧 修复命令
+
+    ```bash
+    # 清理镜像
+    crictl rmi --prune
+    
+    # 清理已停止容器
+    crictl rm $(crictl ps -a -q --state exited)
+    
+    # 手动触发垃圾回收
+    # kubelet 会自动执行，也可等待
+    ```
+
+  # ==========================================================================
+  # L1: 节点内存压力 (MemoryPressure)
+  # ==========================================================================
+  node-memory-pressure.md: |
+    # 节点内存压力 (MemoryPressure) 诊断手册
+
+    > **层级**: `L1` - 集群与节点层
+    > **类型**: `knowledge`（知识型）
+    > **适用场景**: 节点出现 MemoryPressure 条件
+
+    ## 故障特征
+
+    **关键词**: `MemoryPressure`、`memory.available`
+    
+    **典型表现**:
+    - `kubectl describe node` 显示 MemoryPressure=True
+    - Pod 被驱逐
+    - 系统可能触发 OOM Killer
+
+    ## 问题原理
+
+    kubelet 监控可用内存：
+    - 默认阈值: `memory.available < 100Mi`
+    - 触发后开始驱逐 BestEffort 和 Burstable Pod
+
+    **驱逐优先级**:
+    1. BestEffort Pod（无 requests/limits）
+    2. Burstable Pod（使用超过 requests）
+    3. Guaranteed Pod（最后被驱逐）
+
+    ## 诊断命令
+
+    ```bash
+    # 1. 查看节点条件
+    kubectl describe node <node> | grep -A 5 Conditions
+    
+    # 2. 查看内存使用
+    free -h
+    
+    # 3. 查看被驱逐的 Pod
+    kubectl get pod -A | grep Evicted
+    
+    # 4. 查看节点资源分配
+    kubectl describe node <node> | grep -A 10 "Allocated resources"
+    ```
+
+    ## 常见场景与解决方案
+
+    ### 场景 1: 资源超卖
+
+    **根因**: 节点上 Pod 的 requests 总和过大
+    
+    **诊断**:
+    ```bash
+    kubectl describe node <node> | grep -A 10 "Allocated resources"
+    ```
+    
+    **修复**:
+    - 减少 Pod 数量
+    - 降低 Pod 的 requests
+    - 扩容节点
+
+    ### 场景 2: 某个 Pod 内存泄漏
+
+    **根因**: Pod 使用内存持续增长
+    
+    **诊断**:
+    ```bash
+    # 使用 Prometheus 查询
+    # topk(10, container_memory_usage_bytes{node="xxx"})
+    ```
+    
+    **修复**: 设置合理的 memory limits
+
+    ## 🔧 修复命令
+
+    ```bash
+    # 查看内存使用最多的 Pod
+    kubectl top pod -A --sort-by=memory | head -20
+    
+    # 手动删除低优先级 Pod 释放资源
+    kubectl delete pod <pod-name> -n <namespace>
+    ```
+
+  # ==========================================================================
+  # L3: Service 无后端 (Endpoints 为空)
+  # ==========================================================================
+  service-no-endpoints.md: |
+    # Service 无后端 (Endpoints 为空) 诊断手册
+
+    > **层级**: `L3` - 服务与网络层
+    > **类型**: `knowledge`（知识型）
+    > **适用场景**: 访问 Service 无响应，Endpoints 为空
+
+    ## 故障特征
+
+    **关键词**: `no endpoints available`、`connection refused`、`Endpoints 为空`
+    
+    **典型表现**:
+    - 访问 Service IP 无响应
+    - `kubectl get endpoints <svc>` 显示 `<none>`
+    - 服务发现失败
+
+    ## 问题原理
+
+    Service 通过 **Selector** 匹配 Pod，自动维护 Endpoints：
+    - Selector 匹配到的 Pod 必须是 **Running 且 Ready**
+    - 如果没有 Pod 匹配，Endpoints 为空
+
+    ## 诊断命令
+
+    ```bash
+    # 1. 查看 Service
+    kubectl get svc <service-name> -n <namespace> -o wide
+    
+    # 2. 查看 Endpoints
+    kubectl get endpoints <service-name> -n <namespace>
+    
+    # 3. 查看 Service 的 Selector
+    kubectl get svc <service-name> -n <namespace> -o jsonpath='{.spec.selector}'
+    
+    # 4. 查看匹配的 Pod
+    kubectl get pod -n <namespace> -l <key>=<value>
+    
+    # 5. 检查 Pod 是否 Ready
+    kubectl get pod -n <namespace> -l <key>=<value> -o wide
+    ```
+
+    ## 常见场景与解决方案
+
+    ### 场景 1: Selector 不匹配
+
+    **根因**: Service 的 selector 与 Pod 的 labels 不一致
+    
+    **诊断**:
+    ```bash
+    # 查看 Service selector
+    kubectl get svc <svc> -o jsonpath='{.spec.selector}'
+    
+    # 查看 Pod labels
+    kubectl get pod <pod> -o jsonpath='{.metadata.labels}'
+    ```
+    
+    **修复**: 修正 Service selector 或 Pod labels
+
+    ### 场景 2: Pod 未 Ready
+
+    **根因**: Pod 正在运行，但 readinessProbe 失败
+    
+    **诊断**:
+    ```bash
+    kubectl get pod -n <namespace> -l <selector>
+    # 查看 READY 列是否为 0/1
+    ```
+    
+    **修复**: 参考 pod-not-ready.md
+
+    ### 场景 3: Pod 不存在
+
+    **根因**: 没有 Pod 运行
+    
+    **诊断**:
+    ```bash
+    kubectl get pod -n <namespace> -l <selector>
+    kubectl get deployment -n <namespace>
+    ```
+    
+    **修复**: 检查 Deployment 副本数，确保 Pod 运行
+
+    ### 场景 4: 命名空间错误
+
+    **根因**: Service 和 Pod 不在同一命名空间
+    
+    **说明**: Service 只能选择同一命名空间的 Pod
+
+    ## 🔧 修复命令
+
+    ```bash
+    # 查看 Service 详情
+    kubectl describe svc <service-name> -n <namespace>
+    
+    # 测试 Service 连通性
+    kubectl run test --rm -it --image=busybox -- wget -O- <service-name>.<namespace>:<port>
+    ```
+
+  # ==========================================================================
+  # L3: DNS 解析失败
+  # ==========================================================================
+  dns-resolution-failed.md: |
+    # DNS 解析失败诊断手册
+
+    > **层级**: `L3` - 服务与网络层
+    > **类型**: `knowledge`（知识型）
+    > **适用场景**: Pod 内 DNS 解析失败
+
+    ## 故障特征
+
+    **关键词**: `NXDOMAIN`、`no such host`、`DNS resolution failed`
+    
+    **典型表现**:
+    - 应用无法解析服务名
+    - `nslookup` 失败
+    - 连接超时（DNS 引起）
+
+    ## 问题原理
+
+    K8s DNS 解析流程：
+    1. Pod 使用 `/etc/resolv.conf` 中的 DNS 服务器
+    2. 默认指向 CoreDNS Service（kube-dns）
+    3. CoreDNS 解析集群内服务名（xxx.namespace.svc.cluster.local）
+    4. 外部域名转发到上游 DNS
+
+    ## 诊断命令
+
+    ```bash
+    # 1. 检查 CoreDNS 是否正常
+    kubectl get pod -n kube-system -l k8s-app=kube-dns
+    
+    # 2. 查看 CoreDNS 日志
+    kubectl logs -n kube-system -l k8s-app=kube-dns --tail=100
+    
+    # 3. 检查 kube-dns Service
+    kubectl get svc -n kube-system kube-dns
+    
+    # 4. 在 Pod 内测试 DNS
+    kubectl exec <pod> -- nslookup kubernetes.default
+    kubectl exec <pod> -- cat /etc/resolv.conf
+    
+    # 5. 测试外部 DNS
+    kubectl exec <pod> -- nslookup google.com
+    ```
+
+    ## 常见场景与解决方案
+
+    ### 场景 1: CoreDNS Pod 异常
+
+    **根因**: CoreDNS Pod 崩溃或未运行
+    
+    **诊断**:
+    ```bash
+    kubectl get pod -n kube-system -l k8s-app=kube-dns
+    kubectl describe pod -n kube-system -l k8s-app=kube-dns
+    ```
+    
+    **修复**:
+    ```bash
+    kubectl rollout restart deployment/coredns -n kube-system
+    ```
+
+    ### 场景 2: 服务名拼写错误
+
+    **根因**: 服务名格式错误
+    
+    **正确格式**:
+    - 同命名空间: `<service-name>`
+    - 跨命名空间: `<service-name>.<namespace>`
+    - 完整格式: `<service-name>.<namespace>.svc.cluster.local`
+    
+    **诊断**:
+    ```bash
+    kubectl get svc -A | grep <service-name>
+    ```
+
+    ### 场景 3: Pod DNS 配置错误
+
+    **根因**: Pod 的 dnsPolicy 配置不当
+    
+    **诊断**:
+    ```bash
+    kubectl get pod <pod> -o jsonpath='{.spec.dnsPolicy}'
+    kubectl exec <pod> -- cat /etc/resolv.conf
+    ```
+    
+    **常见 dnsPolicy**:
+    - `ClusterFirst`: 默认，优先使用集群 DNS
+    - `Default`: 使用节点的 DNS
+    - `None`: 需要手动配置 dnsConfig
+
+    ### 场景 4: 网络策略阻断 DNS
+
+    **根因**: NetworkPolicy 阻止了到 CoreDNS 的流量
+    
+    **诊断**:
+    ```bash
+    kubectl get networkpolicy -n <namespace>
+    ```
+    
+    **修复**: 添加允许 DNS 流量的规则
+
+    ## 🔧 修复命令
+
+    ```bash
+    # 重启 CoreDNS
+    kubectl rollout restart deployment/coredns -n kube-system
+    
+    # 测试 DNS
+    kubectl run dns-test --rm -it --image=busybox -- nslookup kubernetes.default
+    
+    # 查看 CoreDNS 配置
+    kubectl get configmap coredns -n kube-system -o yaml
+    ```
+
+  # ==========================================================================
+  # L3: 网络连通性问题
+  # ==========================================================================
+  network-connectivity.md: |
+    # 网络连通性问题诊断手册
+
+    > **层级**: `L3` - 服务与网络层
+    > **类型**: `knowledge`（知识型）
+    > **适用场景**: Pod 间无法通信、跨节点网络不通
+
+    ## 故障特征
+
+    **关键词**: `connection refused`、`timeout`、`no route to host`
+    
+    **典型表现**:
+    - Pod 间无法 ping 通
+    - 跨节点通信失败
+    - 同节点通信正常，跨节点失败
+
+    ## 问题原理
+
+    K8s 网络模型：
+    1. 每个 Pod 有独立 IP
+    2. Pod 间可以直接通信（不需要 NAT）
+    3. 网络插件（CNI）负责实现
+
+    ## 诊断命令
+
+    ```bash
+    # 1. 获取 Pod IP
+    kubectl get pod -o wide
+    
+    # 2. 从 Pod A 测试到 Pod B
+    kubectl exec <pod-a> -- ping <pod-b-ip>
+    kubectl exec <pod-a> -- nc -zv <pod-b-ip> <port>
+    
+    # 3. 检查 NetworkPolicy
+    kubectl get networkpolicy -n <namespace>
+    
+    # 4. 检查 CNI 插件状态（以 Calico 为例）
+    kubectl get pod -n kube-system -l k8s-app=calico-node
+    
+    # 5. 检查节点间网络
+    # 在节点 A 上 ping 节点 B 的 Pod 网段
+    ```
+
+    ## 常见场景与解决方案
+
+    ### 场景 1: NetworkPolicy 阻断
+
+    **根因**: 存在 NetworkPolicy 限制了 ingress/egress
+    
+    **诊断**:
+    ```bash
+    kubectl get networkpolicy -n <namespace>
+    kubectl describe networkpolicy <policy-name> -n <namespace>
+    ```
+    
+    **修复**: 调整 NetworkPolicy 规则
+
+    ### 场景 2: CNI 插件异常
+
+    **根因**: 网络插件 Pod 未正常运行
+    
+    **诊断**:
+    ```bash
+    # Calico
+    kubectl get pod -n kube-system -l k8s-app=calico-node
+    
+    # Flannel
+    kubectl get pod -n kube-system -l app=flannel
+    
+    # Cilium
+    kubectl get pod -n kube-system -l k8s-app=cilium
+    ```
+    
+    **修复**: 重启 CNI 插件 Pod
+
+    ### 场景 3: 跨节点网络问题
+
+    **特征**: 同节点 Pod 通信正常，跨节点失败
+    
+    **根因**: 节点间网络隧道问题（VXLAN/IPIP）
+    
+    **诊断**:
+    ```bash
+    # 检查隧道接口
+    ip link show | grep -E "vxlan|tunl"
+    
+    # 检查路由
+    ip route
+    ```
+
+    ### 场景 4: kube-proxy 问题
+
+    **根因**: Service IP 无法访问
+    
+    **诊断**:
+    ```bash
+    kubectl get pod -n kube-system -l k8s-app=kube-proxy
+    kubectl logs -n kube-system -l k8s-app=kube-proxy --tail=50
+    
+    # 检查 iptables 规则（iptables 模式）
+    iptables -t nat -L KUBE-SERVICES | head -20
+    ```
+
+    ## 🔧 修复命令
+
+    ```bash
+    # 重启 CNI 插件
+    kubectl rollout restart daemonset/calico-node -n kube-system
+    
+    # 重启 kube-proxy
+    kubectl rollout restart daemonset/kube-proxy -n kube-system
+    
+    # 测试连通性
+    kubectl run test --rm -it --image=busybox -- ping <target-ip>
+    ```
+
+  # ==========================================================================
+  # L3: Ingress 无法访问
+  # ==========================================================================
+  ingress-not-working.md: |
+    # Ingress 无法访问诊断手册
+
+    > **层级**: `L3` - 服务与网络层
+    > **类型**: `knowledge`（知识型）
+    > **适用场景**: 通过 Ingress 访问服务失败
+
+    ## 故障特征
+
+    **关键词**: `404`、`502`、`503`、`Ingress`
+    
+    **典型表现**:
+    - 访问 Ingress 返回 404/502/503
+    - SSL 证书错误
+    - 域名无法解析到 Ingress
+
+    ## 诊断命令
+
+    ```bash
+    # 1. 查看 Ingress
+    kubectl get ingress -n <namespace>
+    kubectl describe ingress <ingress-name> -n <namespace>
+    
+    # 2. 检查 Ingress Controller
+    kubectl get pod -n ingress-nginx
+    kubectl logs -n ingress-nginx -l app.kubernetes.io/component=controller --tail=100
+    
+    # 3. 检查后端 Service
+    kubectl get svc <backend-service> -n <namespace>
+    kubectl get endpoints <backend-service> -n <namespace>
+    
+    # 4. 测试直接访问 Service
+    kubectl port-forward svc/<service> 8080:80
+    curl localhost:8080
+    ```
+
+    ## 常见场景与解决方案
+
+    ### 场景 1: 返回 404
+
+    **根因**: 路径规则不匹配或后端 Service 不存在
+    
+    **诊断**:
+    ```bash
+    kubectl describe ingress <ingress> | grep -A 10 Rules
+    ```
+    
+    **修复**: 检查 path 和 pathType 配置
+
+    ### 场景 2: 返回 502 Bad Gateway
+
+    **根因**: 后端 Service 无 Endpoints 或 Pod 未 Ready
+    
+    **诊断**:
+    ```bash
+    kubectl get endpoints <backend-service> -n <namespace>
+    ```
+    
+    **修复**: 确保后端 Pod 运行且 Ready
+
+    ### 场景 3: 返回 503 Service Unavailable
+
+    **根因**: Ingress Controller 无法连接后端
+    
+    **诊断**:
+    ```bash
+    kubectl logs -n ingress-nginx -l app.kubernetes.io/component=controller | grep <service-name>
+    ```
+
+    ### 场景 4: SSL 证书错误
+
+    **根因**: TLS Secret 配置错误或证书过期
+    
+    **诊断**:
+    ```bash
+    kubectl get secret <tls-secret> -n <namespace>
+    kubectl get secret <tls-secret> -n <namespace> -o jsonpath='{.data.tls\.crt}' | base64 -d | openssl x509 -noout -dates
+    ```
+
+    ## 🔧 修复命令
+
+    ```bash
+    # 重启 Ingress Controller
+    kubectl rollout restart deployment/ingress-nginx-controller -n ingress-nginx
+    
+    # 查看 Ingress 配置
+    kubectl get ingress <name> -n <namespace> -o yaml
+    ```
+
+  # ==========================================================================
+  # L4: 应用连接被拒绝
+  # ==========================================================================
+  app-connection-refused.md: |
+    # 应用连接被拒绝诊断手册
+
+    > **层级**: `L4` - 应用层
+    > **类型**: `knowledge`（知识型）
+    > **适用场景**: 应用无法连接数据库、缓存、消息队列等依赖服务
+
+    ## 故障特征
+
+    **关键词**: `Connection refused`、`ECONNREFUSED`、`timeout`、`连接超时`
+    
+    **典型表现**:
+    - 应用日志显示数据库连接失败
+    - Redis/MQ 连接超时
+    - 第三方 API 调用失败
+
+    ## 问题原理
+
+    应用连接失败可能发生在多个层面：
+    1. **DNS 解析失败**: 无法解析目标地址
+    2. **网络不通**: 防火墙/NetworkPolicy 阻断
+    3. **目标服务不可用**: 服务未启动或异常
+    4. **认证失败**: 用户名/密码错误
+    5. **连接池耗尽**: 连接数超限
+
+    ## 诊断命令
+
+    ```bash
+    # 1. 查看应用日志
+    kubectl logs <pod> -n <namespace> | grep -i "connection\|refused\|timeout\|error"
+    
+    # 2. 进入 Pod 测试网络
+    kubectl exec -it <pod> -n <namespace> -- /bin/sh
+    
+    # 3. 测试 DNS 解析
+    kubectl exec <pod> -- nslookup <target-host>
+    
+    # 4. 测试端口连通性
+    kubectl exec <pod> -- nc -zv <target-host> <port>
+    
+    # 5. 测试 TCP 连接
+    kubectl exec <pod> -- timeout 5 bash -c 'cat < /dev/tcp/<host>/<port>'
+    ```
+
+    ## 常见场景与解决方案
+
+    ### 场景 1: 目标服务未启动
+
+    **特征**: `Connection refused`
+    
+    **诊断**:
+    ```bash
+    # 检查目标服务 Pod 状态
+    kubectl get pod -n <namespace> -l app=<target-service>
+    kubectl get endpoints <target-service>
+    ```
+    
+    **修复**: 确保目标服务正常运行
+
+    ### 场景 2: 网络策略阻断
+
+    **特征**: 连接超时（非 refused）
+    
+    **诊断**:
+    ```bash
+    kubectl get networkpolicy -n <namespace>
+    kubectl get networkpolicy -n <target-namespace>
+    ```
+    
+    **修复**: 添加允许通信的 NetworkPolicy 规则
+
+    ### 场景 3: 认证失败
+
+    **特征**: 日志显示 `Authentication failed`、`Access denied`
+    
+    **诊断**:
+    ```bash
+    # 检查配置的凭据
+    kubectl exec <pod> -- env | grep -i password
+    kubectl get secret <secret-name> -o yaml
+    ```
+    
+    **修复**: 更新正确的凭据
+
+    ### 场景 4: 连接池耗尽
+
+    **特征**: 偶发性连接失败，非持续性
+    
+    **根因**: 应用连接未正确释放，或连接池配置过小
+    
+    **诊断**: 查看目标服务的连接数
+    ```bash
+    # MySQL
+    SHOW STATUS LIKE 'Threads_connected';
+    
+    # Redis
+    INFO clients
+    ```
+    
+    **修复**: 调整连接池配置或排查连接泄漏
+
+    ### 场景 5: DNS 解析失败
+
+    **特征**: `no such host`、`NXDOMAIN`
+    
+    **修复**: 参考 dns-resolution-failed.md
+
+    ## 🔧 修复命令
+
+    ```bash
+    # 测试数据库连接
+    kubectl run db-test --rm -it --image=mysql:5.7 -- mysql -h <host> -u <user> -p
+    
+    # 测试 Redis 连接
+    kubectl run redis-test --rm -it --image=redis -- redis-cli -h <host> ping
+    
+    # 重启应用
+    kubectl rollout restart deployment/<app> -n <namespace>
+    ```
+
+    ## 证据来源映射
+
+    | 证据 | 来源 | 说明 |
+    |------|------|------|
+    | 错误类型 | `kubectl logs` | Connection refused/timeout |
+    | 网络连通 | `nc -zv` | 端口是否可达 |
+    | DNS 解析 | `nslookup` | 域名是否可解析 |
+    | 目标状态 | `kubectl get endpoints` | 服务是否有后端 |
+
+  # ==========================================================================
+  # L4: 应用 5xx 错误
+  # ==========================================================================
+  app-5xx-errors.md: |
+    # 应用 5xx 错误诊断手册
+
+    > **层级**: `L4` - 应用层
+    > **类型**: `knowledge`（知识型）
+    > **适用场景**: 应用返回 500/502/503/504 等服务器错误
+
+    ## 故障特征
+
+    **关键词**: `500`、`502`、`503`、`504`、`Internal Server Error`
+    
+    **HTTP 状态码含义**:
+    | 状态码 | 含义 | 常见原因 |
+    |--------|------|---------|
+    | 500 | Internal Server Error | 应用代码异常 |
+    | 502 | Bad Gateway | 上游服务不可用 |
+    | 503 | Service Unavailable | 服务过载/未就绪 |
+    | 504 | Gateway Timeout | 上游响应超时 |
+
+    ## 诊断命令
+
+    ```bash
+    # 1. 查看应用日志
+    kubectl logs <pod> -n <namespace> --tail=200
+    
+    # 2. 搜索错误关键词
+    kubectl logs <pod> -n <namespace> | grep -i "error\|exception\|panic\|fatal"
+    
+    # 3. 查看应用健康状态
+    kubectl exec <pod> -- curl -v http://localhost:<port>/healthz
+    
+    # 4. 查看 Pod 资源使用
+    kubectl top pod <pod> -n <namespace>
+    
+    # 5. 检查 Ingress/Gateway 日志
+    kubectl logs -n ingress-nginx -l app.kubernetes.io/component=controller | grep <service>
+    ```
+
+    ## 常见场景与解决方案
+
+    ### 场景 1: 500 - 应用代码异常
+
+    **特征**: 日志中有异常堆栈（Exception/Panic/Error）
+    
+    **诊断**:
+    ```bash
+    kubectl logs <pod> | grep -A 20 "Exception\|Panic\|Error"
+    ```
+    
+    **修复**:
+    - 分析异常堆栈定位代码问题
+    - 短期：重启 Pod
+    - 长期：修复代码
+
+    ### 场景 2: 502 - 上游服务不可用
+
+    **特征**: Ingress/Gateway 返回 502
+    
+    **诊断**:
+    ```bash
+    # 检查后端 Service 是否有 Endpoints
+    kubectl get endpoints <backend-service>
+    
+    # 检查 Pod 是否 Ready
+    kubectl get pod -l app=<backend>
+    ```
+    
+    **修复**: 确保后端 Pod 运行且 Ready
+
+    ### 场景 3: 503 - 服务过载
+
+    **特征**: 高并发时出现 503
+    
+    **诊断**:
+    ```bash
+    # 查看 Pod 资源使用
+    kubectl top pod -l app=<app>
+    
+    # 查看 HPA 状态
+    kubectl get hpa
+    ```
+    
+    **修复**:
+    - 增加副本数
+    - 配置 HPA 自动扩容
+    - 优化应用性能
+
+    ### 场景 4: 504 - 响应超时
+
+    **特征**: 请求处理时间过长
+    
+    **诊断**:
+    ```bash
+    # 查看慢请求日志
+    kubectl logs <pod> | grep -i "slow\|timeout"
+    
+    # 检查依赖服务响应时间
+    kubectl exec <pod> -- curl -w "@-" -o /dev/null -s http://<dependency>
+    ```
+    
+    **修复**:
+    - 增加超时时间配置
+    - 优化慢查询
+    - 检查依赖服务性能
+
+    ## 🔧 修复命令
+
+    ```bash
+    # 重启应用
+    kubectl rollout restart deployment/<app> -n <namespace>
+    
+    # 临时扩容
+    kubectl scale deployment/<app> --replicas=5 -n <namespace>
+    
+    # 查看实时日志
+    kubectl logs -f <pod> -n <namespace>
+    ```
+
+  # ==========================================================================
+  # L4: 应用配置错误
+  # ==========================================================================
+  app-config-errors.md: |
+    # 应用配置错误诊断手册
+
+    > **层级**: `L4` - 应用层
+    > **类型**: `knowledge`（知识型）
+    > **适用场景**: 环境变量、ConfigMap、Secret 配置问题
+
+    ## 故障特征
+
+    **关键词**: `config`、`environment`、`not found`、`undefined`
+    
+    **典型表现**:
+    - 应用启动失败，日志显示配置缺失
+    - 连接字符串错误
+    - 功能异常但代码正确
+
+    ## 诊断命令
+
+    ```bash
+    # 1. 查看 Pod 环境变量
+    kubectl exec <pod> -n <namespace> -- env | sort
+    
+    # 2. 查看 Pod 配置的 ConfigMap/Secret
+    kubectl get pod <pod> -n <namespace> -o jsonpath='{.spec.containers[*].envFrom}'
+    kubectl get pod <pod> -n <namespace> -o jsonpath='{.spec.volumes}'
+    
+    # 3. 查看 ConfigMap 内容
+    kubectl get configmap <name> -n <namespace> -o yaml
+    
+    # 4. 查看 Secret 内容（base64 解码）
+    kubectl get secret <name> -n <namespace> -o jsonpath='{.data.<key>}' | base64 -d
+    
+    # 5. 查看挂载的配置文件
+    kubectl exec <pod> -- cat /path/to/config.yaml
+    ```
+
+    ## 常见场景与解决方案
+
+    ### 场景 1: 环境变量缺失
+
+    **特征**: 日志显示 `xxx is undefined` 或 `missing required config`
+    
+    **诊断**:
+    ```bash
+    kubectl exec <pod> -- env | grep <EXPECTED_VAR>
+    ```
+    
+    **修复**:
+    ```bash
+    # 在 Deployment 中添加环境变量
+    kubectl set env deployment/<name> <KEY>=<VALUE> -n <namespace>
+    ```
+
+    ### 场景 2: ConfigMap/Secret 未挂载
+
+    **特征**: 配置文件不存在
+    
+    **诊断**:
+    ```bash
+    kubectl describe pod <pod> | grep -A 10 Volumes
+    kubectl exec <pod> -- ls -la /path/to/config/
+    ```
+    
+    **修复**: 检查 Deployment 的 volumes 和 volumeMounts 配置
+
+    ### 场景 3: ConfigMap/Secret 更新后未生效
+
+    **根因**: 环境变量方式引用的 ConfigMap/Secret 更新后不会自动生效
+    
+    **修复**:
+    ```bash
+    # 重启 Pod 使配置生效
+    kubectl rollout restart deployment/<name> -n <namespace>
+    ```
+
+    ### 场景 4: 配置值格式错误
+
+    **特征**: 解析配置失败，如 JSON/YAML 格式错误
+    
+    **诊断**:
+    ```bash
+    # 查看配置内容
+    kubectl get configmap <name> -o yaml
+    
+    # 验证 JSON 格式
+    kubectl exec <pod> -- cat /path/config.json | jq .
+    ```
+    
+    **修复**: 更新正确格式的配置
+
+    ### 场景 5: 敏感信息泄露排查
+
+    **诊断**:
+    ```bash
+    # 检查是否有敏感信息放在 ConfigMap 而非 Secret
+    kubectl get configmap -o yaml | grep -i password
+    ```
+
+    ## 🔧 修复命令
+
+    ```bash
+    # 更新 ConfigMap
+    kubectl create configmap <name> --from-file=<file> --dry-run=client -o yaml | kubectl apply -f -
+    
+    # 更新 Secret
+    kubectl create secret generic <name> --from-literal=<key>=<value> --dry-run=client -o yaml | kubectl apply -f -
+    
+    # 重启应用使配置生效
+    kubectl rollout restart deployment/<name> -n <namespace>
+    ```
+
+    ## 配置最佳实践
+
+    1. **敏感信息用 Secret**: 密码、API Key、证书
+    2. **配置用 ConfigMap**: 应用配置、环境设置
+    3. **文件挂载 vs 环境变量**:
+       - 文件挂载：支持热更新（但应用需监听文件变化）
+       - 环境变量：需重启 Pod 才能更新
 
   # ==========================================================================
   # Helm 管理 Observability 可观测性平台

@@ -24,7 +24,8 @@ spec:
       serviceAccountName: aiops-copilot
       containers:
         - name: aiops-copilot
-          image: xnet.registry.io:8443/xnet-cloud/aiops-copilot:2.4.4
+          image: xnet.registry.io:8443/xnet-cloud/aiops-copilot:2.8.4
+          imagePullPolicy: Always  # 每次都拉取最新镜像
           ports:
             - containerPort: 8000
           env:
@@ -33,6 +34,12 @@ spec:
                 secretKeyRef:
                   name: aiops-secret
                   key: DEEPSEEK_API_KEY
+            - name: DEEPSEEK_MODEL
+              valueFrom:
+                secretKeyRef:
+                  name: aiops-secret
+                  key: DEEPSEEK_MODEL
+                  optional: true  # 可选，不存在时使用默认值
             - name: BASH_TOOL_UNSAFE_ALLOW_ALL
               valueFrom:
                 secretKeyRef:

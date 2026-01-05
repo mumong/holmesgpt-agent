@@ -446,7 +446,7 @@ async def main():
 
 if __name__ == "__main__":
     try:
-        asyncio.run(main())
+    asyncio.run(main())
     except KeyboardInterrupt:
         logger.info("👋 收到键盘中断，退出")
         sys.exit(0)
