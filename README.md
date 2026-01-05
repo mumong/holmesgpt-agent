@@ -1,18 +1,73 @@
-# 🤖 K8s AIOps Copilot
+# 🤖 K8s-SRE Agent
 
-基于 [HolmesGPT](https://github.com/robusta-dev/holmesgpt) 的智能运维 Copilot，专注于 Kubernetes 集群故障诊断与自动修复。
+基于 [HolmesGPT](https://github.com/robusta-dev/holmesgpt) 的智能 Kubernetes 运维诊断 Agent，采用**分层诊断模型**快速定位问题根因。
 
-**当前版本**: `2.3.2`
+**当前版本**: `2.8.4`
 
 ---
 
-## ✨ 核心特性
+## 🎯 核心能力
 
-- 🔍 **智能诊断**: 基于 DSPy 的问题分类，自动匹配诊断策略
-- 🛠️ **自动修复**: 识别根因后自动执行安全的修复操作
-- 📚 **Runbook 知识库**: 内置常见故障修复手册
-- 🔌 **MCP 扩展**: 支持外部工具集成（Helm、Prometheus、Elasticsearch 等）
-- 📊 **流式输出**: 实时查看诊断过程
+```
+分层定位问题 → 分类识别原因 → 给出证据支撑的结论
+```
+
+| 能力 | 说明 |
+|------|------|
+| 🏗️ **分层诊断** | 基于 L0-L4 五层架构模型，快速定位问题层级 |
+| 🔍 **证据驱动** | 每个结论都有明确的证据来源 |
+| 📚 **Runbook 知识库** | 19+ 内置故障诊断手册，覆盖常见场景 |
+| 🛠️ **智能修复** | 识别根因后自动执行安全的修复操作 |
+| 🔌 **MCP 扩展** | 支持 Helm、Prometheus、Elasticsearch 等工具集成 |
+
+---
+
+## 🏗️ 五层诊断模型
+
+问题分析遵循 **L0-L4 分层架构**，从底层向上逐层排查：
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ L4: 应用层 (Application)                                        │
+│     业务逻辑错误、代码异常、配置错误、依赖服务不可用              │
+├─────────────────────────────────────────────────────────────────┤
+│ L3: 服务与网络层 (Service & Network)                             │
+│     Service/Ingress 配置、DNS 解析、NetworkPolicy、跨 Pod 通信   │
+├─────────────────────────────────────────────────────────────────┤
+│ L2: 工作负载层 (Workload)                                        │
+│     Pod 生命周期、容器状态、镜像拉取、探针、资源限制              │
+├─────────────────────────────────────────────────────────────────┤
+│ L1: 集群与节点层 (Cluster & Node)                                │
+│     Node 状态、调度器、kubelet、容器运行时、系统资源              │
+├─────────────────────────────────────────────────────────────────┤
+│ L0: 基础设施层 (Infrastructure)                                  │
+│     磁盘、内存、CPU、网络连通性、内核、文件系统                   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 诊断输出示例
+
+```
+## 📍 问题定位
+- **层级**: L2 - 工作负载层
+- **分类**: Pod CrashLoop
+- **置信度**: 高
+
+## 🔍 现象描述
+Pod nginx-xxx 处于 CrashLoopBackOff 状态，已重启 15 次
+
+## 🕵️ 根因分析
+| 证据来源 | 关键信息 | 说明 |
+|----------|----------|------|
+| kubectl describe pod | Exit Code 137 | 容器被 OOMKilled |
+| kubectl logs --previous | "Out of memory" | 应用内存溢出 |
+
+**结论**: 容器内存 limit 设置过小(512Mi)，应用实际需要更多内存
+
+## 🛠️ 修复建议
+1. 增加 resources.limits.memory 到 1Gi
+2. 检查应用是否存在内存泄漏
+```
 
 ---
 
@@ -27,9 +82,6 @@ curl -X POST "http://<NODE_IP>:30800/ask" -d "q=Pod 一直在重启"
 # 中文问题（GET 方式需要 URL 编码）
 curl -G "http://<NODE_IP>:30800/ask" --data-urlencode "q=磁盘满了怎么清理"
 
-# 流式输出（默认开启）
-curl -N -X POST "http://<NODE_IP>:30800/ask" -d "q=检查集群健康状态"
-
 # 调整最大步数（复杂问题）
 curl -X POST "http://<NODE_IP>:30800/ask" -d "q=安装 observability" -d "max_steps=50"
 ```
@@ -39,7 +91,6 @@ curl -X POST "http://<NODE_IP>:30800/ask" -d "q=安装 observability" -d "max_st
 | 端点 | 方法 | 说明 |
 |------|------|------|
 | `/ask` | GET/POST | 主要查询入口 |
-| `/q/{问题}` | GET | 路径参数方式 |
 | `/health` | GET | 健康检查 |
 | `/tools` | GET | 可用工具列表 |
 | `/runbooks` | GET | 可用 Runbooks |
@@ -99,15 +150,63 @@ deploy/
 
 ## 📚 Runbook 知识库
 
-内置故障修复手册，AI 会自动参考：
+内置 **19+ 故障诊断手册**，按分层模型组织，AI 会自动参考：
+
+### L0: 基础设施层
 
 | Runbook | 说明 |
 |---------|------|
-| `disk-full` | 磁盘空间耗尽诊断与修复 |
-| `crashloop-backoff` | Pod 崩溃循环（CrashLoopBackOff）分析 |
-| `port-conflict` | 端口冲突诊断与修复 |
-| `prometheus-metrics` | Prometheus 指标查询指南 |
-| `helm-observability-install` | Helm 安装可观测性平台 |
+| `infra-disk-full` | 磁盘空间耗尽 - 日志膨胀、Docker 镜像堆积、Inode 耗尽 |
+| `infra-memory-exhausted` | 系统内存耗尽 - OOM Killer、内存泄漏 |
+| `infra-cpu-saturation` | CPU 饱和 - 高 load average、IO Wait |
+
+### L1: 集群与节点层
+
+| Runbook | 说明 |
+|---------|------|
+| `node-not-ready` | 节点异常 NotReady - kubelet、容器运行时 |
+| `node-disk-pressure` | 节点磁盘压力 - DiskPressure 条件 |
+| `node-memory-pressure` | 节点内存压力 - MemoryPressure 条件 |
+
+### L2: 工作负载层
+
+| Runbook | 说明 |
+|---------|------|
+| `pod-quick-diagnosis` | Pod 异常快速诊断入口（流程型） |
+| `pod-pending` | Pod 调度失败 - 资源不足、污点、PVC |
+| `pod-image-pull-failed` | 镜像拉取失败 - 地址、网络、认证 |
+| `pod-crashloop-backoff` | 容器崩溃循环 - Exit Code 解读、OOM |
+| `pod-not-ready` | Pod 未就绪 - 健康检查失败 |
+| `pod-terminating` | Pod 删除卡住 - Finalizer 阻塞 |
+| `pod-evicted` | Pod 被驱逐 - 节点资源压力 |
+
+### L3: 服务与网络层
+
+| Runbook | 说明 |
+|---------|------|
+| `service-no-endpoints` | Service 无后端 - Selector 不匹配 |
+| `dns-resolution-failed` | DNS 解析失败 - CoreDNS 异常 |
+| `network-connectivity` | 网络连通性 - Pod 间通信、CNI |
+| `ingress-not-working` | Ingress 无法访问 - 404/502/503 |
+
+### L4: 应用层
+
+| Runbook | 说明 |
+|---------|------|
+| `app-connection-refused` | 应用连接被拒绝 - 数据库/缓存/MQ |
+| `app-5xx-errors` | 应用 5xx 错误 - 500/502/503/504 |
+| `app-config-errors` | 应用配置错误 - 环境变量、ConfigMap |
+
+### 操作类
+
+| Runbook | 说明 |
+|---------|------|
+| `helm-observability-install` | Helm 管理可观测性平台（流程型） |
+
+### Runbook 类型说明
+
+- **知识型 (knowledge)**: 提供诊断知识和参考，可灵活运用
+- **流程型 (procedure)**: 包含明确操作步骤，严格按流程执行
 
 ### 更新 Runbook
 
@@ -119,20 +218,6 @@ kubectl edit configmap aiops-runbooks -n aiops
 vim deploy/configmap/runbooks.yaml
 make restart
 ```
-
----
-
-## 🧠 DSPy 问题分类
-
-系统使用 DSPy 自动分类用户问题，匹配最佳诊断策略：
-
-| 问题类型 | 触发关键词 | 诊断策略 |
-|----------|-----------|----------|
-| `disk_full` | 磁盘满、No space left | 检查 df、定位大文件 |
-| `pod_crash` | CrashLoopBackOff、重启 | 检查 logs、Exit Code |
-| `port_conflict` | 端口占用、Address in use | 检查 netstat、lsof |
-| `helm_install` | 安装 helm、部署监控 | 使用 MCP Helm 工具 |
-| `oom_killed` | OOM、内存溢出 | 检查 limits、Prometheus |
 
 ---
 
@@ -152,15 +237,15 @@ make restart
 
 ```yaml
 mcp_servers:
-  elasticsearch:
-    config:
-      url: "http://mcp-server:8082/sse"
-      mode: "sse"
-    enabled: true
-  
   helmcharts:
     config:
       url: "http://mcp-helm:8083/sse"
+      mode: "sse"
+    enabled: true
+  
+  elasticsearch:
+    config:
+      url: "http://mcp-server:8082/sse"
       mode: "sse"
     enabled: true
 ```
@@ -174,12 +259,14 @@ mcp_servers:
 │   ├── api/routes.py           # FastAPI 路由
 │   ├── core/
 │   │   ├── service.py          # 核心服务（⭐重点）
-│   │   ├── prompts.py          # System Prompt + FOCUSED_PROMPTS
+│   │   ├── prompts.py          # System Prompt（分层诊断模型）
 │   │   ├── dspy_enhancer.py    # DSPy 问题分类器
 │   │   ├── mcp_manager.py      # MCP 服务器管理
 │   │   └── runbook.py          # Runbook 加载
 │   └── main.py                 # 应用入口
 ├── deploy/                     # K8s 部署文件
+│   ├── configmap/runbooks.yaml # Runbook 知识库（19+ 手册）
+│   └── secrets/core.yaml       # API Key
 ├── config/config.yaml          # 本地开发配置
 ├── Dockerfile                  # 容器镜像
 ├── Makefile                    # 构建/部署脚本
@@ -218,7 +305,7 @@ curl -X POST "http://localhost:8000/ask" -d "q=检查集群状态"
 | 文件 | 内容 | 说明 |
 |------|------|------|
 | `deploy/secrets/core.yaml` | DEEPSEEK_API_KEY | LLM API 密钥 |
-| `deploy/secrets/core.yaml` | BASH_TOOL_UNSAFE_ALLOW_ALL | 允许执行所有 bash 命令 |
+| `deploy/secrets/core.yaml` | DEEPSEEK_MODEL | 使用的模型 (deepseek-reasoner) |
 | `deploy/configmap/runbooks.yaml` | Helm Repo 凭证 | observability 私有仓库 |
 
 ### 安全建议
@@ -232,29 +319,42 @@ curl -X POST "http://localhost:8000/ask" -d "q=检查集群状态"
 ## 📊 架构图
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                       用户请求                               │
-│              curl /ask?q="Pod 一直重启"                      │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    DSPy 问题分类器                           │
-│         problem_type: "pod_crash" → FOCUSED_PROMPT          │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                      HolmesGPT 引擎                          │
-│     SYSTEM_PROMPT + FOCUSED_PROMPT + Runbooks + Tools       │
-└─────────────────────────────────────────────────────────────┘
-                              │
-              ┌───────────────┼───────────────┐
-              ▼               ▼               ▼
-        ┌──────────┐   ┌──────────┐   ┌──────────┐
-        │ kubectl  │   │Prometheus│   │ MCP 工具 │
-        │  工具    │   │  查询    │   │(Helm等)  │
-        └──────────┘   └──────────┘   └──────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                          用户请求                                │
+│                 curl /ask?q="Pod 一直重启"                       │
+└───────────────────────────┬─────────────────────────────────────┘
+                            │
+                            ▼
+┌───────────────────────────────────────────────────────────────────┐
+│                      DSPy 问题分类器                               │
+│              识别问题类型 → 匹配 FOCUSED_PROMPT                    │
+└───────────────────────────┬───────────────────────────────────────┘
+                            │
+                            ▼
+┌───────────────────────────────────────────────────────────────────┐
+│                       HolmesGPT 引擎                               │
+│  ┌─────────────────────────────────────────────────────────────┐  │
+│  │  SYSTEM_PROMPT (分层诊断模型 L0-L4)                          │  │
+│  │  + FOCUSED_PROMPT (针对性诊断指引)                           │  │
+│  │  + Runbooks (故障知识库)                                     │  │
+│  └─────────────────────────────────────────────────────────────┘  │
+└───────────────────────────┬───────────────────────────────────────┘
+                            │
+            ┌───────────────┼───────────────┬───────────────┐
+            ▼               ▼               ▼               ▼
+      ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐
+      │ kubectl  │   │Prometheus│   │  Helm    │   │   Bash   │
+      │  工具    │   │  查询    │   │ (MCP)    │   │  命令    │
+      └──────────┘   └──────────┘   └──────────┘   └──────────┘
+                            │
+                            ▼
+┌───────────────────────────────────────────────────────────────────┐
+│                       结构化诊断输出                               │
+│   📍 问题定位 (层级 + 分类 + 置信度)                               │
+│   🔍 现象描述                                                      │
+│   🕵️ 根因分析 (证据来源 + 关键信息)                                │
+│   🛠️ 修复建议                                                      │
+└───────────────────────────────────────────────────────────────────┘
 ```
 
 ---
